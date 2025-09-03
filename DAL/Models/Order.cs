@@ -13,7 +13,7 @@ namespace DAL.Models
         public string Status { get; set; } = null!;
         public decimal TotalAmount { get; set; }
 
-        public User User { get; set; } = null!;
+        public ApplicationUser User { get; set; } = null!;
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 }
