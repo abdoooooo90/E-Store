@@ -1,3 +1,6 @@
+using DAL.Presistance.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace E_LapShop
 {
     public class Program
@@ -8,6 +11,10 @@ namespace E_LapShop
 
             // Add services to the container.
             builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+            builder.Services.AddDbContext<ApplicationDbContext>((OptionsBuilder =>
+            {
+                OptionsBuilder.UseSqlServer((builder.Configuration.GetConnectionString("DefaultConnection")));
+            }));
 
             var app = builder.Build();
 
