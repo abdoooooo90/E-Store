@@ -9,6 +9,7 @@ namespace DAL.Models
 {
     public class ApplicationUser : IdentityUser
     {
+
         public string FullName { get; set; } = null!;       
 
         public ICollection<Order> Orders { get; set; } = new List<Order>();

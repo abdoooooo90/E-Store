@@ -8,12 +8,14 @@ namespace DAL.Models
 {
     public class Order : BaseEntity
     {
-        public int UserId { get; set; }
+        public string? UserId { get; set; }
         public DateTime OrderDate { get; set; }
         public string Status { get; set; } = null!;
         public decimal TotalAmount { get; set; }
-
+        public Payment Payment { get; set; } = null!;
         public ApplicationUser User { get; set; } = null!;
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
+
+
 }

@@ -9,23 +9,26 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DAL.Presistance.Data.Configurations
 {
-    public class OrderConfiguration : IEntityTypeConfiguration<Order>
+
+public class OrderConfiguration : IEntityTypeConfiguration<Order>
     {
         public void Configure(EntityTypeBuilder<Order> builder)
         {
+           
             builder.HasKey(o => o.Id);
 
-            // Configure the relationship with OrderItem
-            builder.HasMany(o => o.OrderItems) // An Order has many OrderItems
-                   .WithOne(oi => oi.Order) // An OrderItem belongs to one Order
-                   .HasForeignKey(oi => oi.OrderId)
+             
+            builder.HasMany(o => o.OrderItems)
+                   .WithOne(oi => oi.Order)
+                   .HasForeignKey(oi => oi.OrderId) // OrderItem.OrderId يربط مع Order.Id
                    .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure the one-to-one relationship with Payment
-            builder.HasOne<Payment>() // An Order has one Payment
-                   .WithOne(p => p.Order) // A Payment has one Order
-                   .HasForeignKey<Payment>(p => p.OrderId) // Foreign key is in Payment
-                   .OnDelete(DeleteBehavior.Cascade);
+             
+            builder.HasOne(o => o.Payment)
+                   .WithOne(p => p.Order)
+                   .HasForeignKey<Payment>(p => p.OrderId); // Payment.OrderId يربط مع Order.Id
         }
     }
+
 }
+

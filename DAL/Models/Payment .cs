@@ -8,6 +8,7 @@ namespace DAL.Models
 {
     public class Payment : BaseEntity
     {
+        public int PaymentId { get; set; }
         public int OrderId { get; set; }
         public Order Order { get; set; } = null!;
 
