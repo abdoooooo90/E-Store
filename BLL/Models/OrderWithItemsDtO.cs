@@ -13,6 +13,6 @@ namespace BLL.Models
         public string Status { get; set; } = null!;
         public decimal TotalAmount { get; set; }
 
-        public List<OrderItemDtO> OrderItems { get; set; } = new();
+        public List<OrderItemDtO>? OrderItems { get; set; } = new();
     }
 }
