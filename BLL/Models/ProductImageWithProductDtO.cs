@@ -4,18 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DAL.Models
+namespace BLL.Models
 {
-    public class ProductImage : BaseEntity 
+    internal class ProductImageWithProductDtO
     {
+        public int Id { get; set; }
         public string ImageUrl { get; set; } = null!;
 
-        
-
-        #region RS
-        //Fk
         public int ProductId { get; set; }
-        public Product Product { get; set; } = null!;
-        #endregion
+        public string ProductName { get; set; } = null!;
+        public string ProductDescription { get; set; }
     }
 }
