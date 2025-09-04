@@ -7,17 +7,14 @@ using System.Threading.Tasks;
 
 namespace DAL.Models
 {
-    public class CartItem  
+    public class CartItem : BaseEntity
     {
          
-        [Required]
         public string UserId { get; set; } = null!;
-        [Required]
+        
         public int ProductId { get; set; }
         public int Quantity { get; set; }
         public decimal Price { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
         public ApplicationUser User { get; set; } = null!;
         public Product Product { get; set; } = null!;
 

@@ -13,7 +13,7 @@ namespace DAL.Presistance.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<CartItem> builder)
         {
-            builder.HasKey(ci => new { ci.UserId, ci.ProductId });
+            builder.HasKey(ci => ci.Id);
 
             builder.Property(ci => ci.Quantity)
                    .IsRequired();
@@ -37,6 +37,8 @@ namespace DAL.Presistance.Data.Configurations
             builder.HasOne(ci => ci.Product)
                    .WithMany(p => p.CartItems)
                    .HasForeignKey(ci => ci.ProductId);
+            builder.HasIndex(ci => new { ci.UserId, ci.ProductId })
+               .IsUnique();
         }
     }
 }
