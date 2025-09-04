@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.Models
+namespace BLL.Models.CategoryDtos
 {
-    internal class CategoryWithProductsDto
+    public class CategoryDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;
-        public List<ProductDtO> Products { get; set; } = new();
     }
 }

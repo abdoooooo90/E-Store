@@ -4,15 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.Models
+namespace BLL.Models.Order
 {
-    internal class OrderWithUserDtO
+    public class OrderDetailsDto
     {
-        public int Id { get; set; }
         public DateTime OrderDate { get; set; }
-        public string Status { get; set; } = null!;
         public decimal TotalAmount { get; set; }
+        public string Status { get; set; } = null!;
         public string UserId { get; set; } = null!;
-        public string UserName { get; set; } = null!;
+        public string UserFullName { get; set; } = null!;
+
+        public List<OrderItemDto> Items { get; set; } = new();
     }
 }

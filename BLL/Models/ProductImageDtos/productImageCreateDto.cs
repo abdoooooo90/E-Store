@@ -4,15 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.Models
+namespace BLL.Models.ProductImageDtos
 {
-    internal class ProductImageWithProductDtO
+    public class productImageCreateDto
     {
         public int Id { get; set; }
         public string ImageUrl { get; set; } = null!;
-
-        public int ProductId { get; set; }
-        public string ProductName { get; set; } = null!;
-        public string ProductDescription { get; set; }
+        public ProductDto Product { get; set; } = null!;
     }
 }
