@@ -15,6 +15,11 @@ namespace E_LapShop.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
         }
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
 
         [HttpPost]
         public async Task<IActionResult> Register(string fullName, string email, string password)
@@ -37,6 +42,11 @@ namespace E_LapShop.Controllers
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);
 
+            return View();
+        }
+        [HttpGet]
+        public IActionResult Login()
+        {
             return View();
         }
 
