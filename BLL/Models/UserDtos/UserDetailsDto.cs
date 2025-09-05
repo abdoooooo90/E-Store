@@ -15,6 +15,6 @@ namespace BLL.Models.UserDtos
         public string Email { get; set; } = null!;
 
         public List<OrderDto> Orders { get; set; } = new List<OrderDto>();
-        public List<CartItemDto> CartItems { get; set; } = new List<CartItemDto>()
+        public List<CartItemDto> CartItems { get; set; } = new List<CartItemDto>();
     }
 }

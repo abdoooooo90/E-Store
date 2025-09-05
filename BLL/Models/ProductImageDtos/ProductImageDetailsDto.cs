@@ -10,7 +10,7 @@ namespace BLL.Models.ProductImageDtos
     {
         public int Id { get; set; }
         public string ImageUrl { get; set; } = null!;
-        public ProductDto Product { get; set; } = null!;
+        public ProductImageDto Product { get; set; } = null!;
 
     }
 }

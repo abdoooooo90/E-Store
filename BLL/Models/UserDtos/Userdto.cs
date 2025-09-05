@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Models.UserDtos
 {
-    public class Userdto
+    public class UserDto
     {
         public string Id { get; set; } = null!;
         public string FullName { get; set; } = null!;

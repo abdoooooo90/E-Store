@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Models.CategoryDtos
 {
-    public class DetailsCategoryDto
+    public class CategoryDetailsDto
     {
         public int Id { get; set; }
         public string Name { get; set; } = null!;

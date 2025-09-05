@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Models.ProductImageDtos
 {
-    public class ProductDto
+    public class ProductImageDto
     {
         public int Id { get; set; }
         public string ImageUrl { get; set; } = null!;

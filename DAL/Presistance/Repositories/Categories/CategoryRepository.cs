@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Presistance.Repositories.Categories
 {
-    public class CategoryRepository: GenericRepository<Category>, ICatigoryRepository
+    public class CategoryRepository: GenericRepository<Category>, ICategoryRepository
     {
         public CategoryRepository(ApplicationDbContext dbContext): base(dbContext)
         {

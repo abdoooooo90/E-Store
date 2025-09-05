@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Presistance.Repositories.Categories
 {
-    public interface ICatigoryRepository: IGenericRepository<Category>
+    public interface ICategoryRepository: IGenericRepository<Category>
     {
     }
 }
