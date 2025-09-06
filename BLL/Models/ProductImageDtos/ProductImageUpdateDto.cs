@@ -9,5 +9,6 @@ namespace BLL.Models.ProductImageDtos
     public class ProductImageUpdateDto
     {
         public string ImageUrl { get; set; } = null!;
+        public int ProductId { get; set; }
     }
 }
