@@ -1,5 +1,20 @@
+using BLL.MappingProfiles;
+using BLL.Services.CartItemServices;
+using BLL.Services.CategorieServices;
+using BLL.Services.OrderServices;
+using BLL.Services.PaymentServices;
+using BLL.Services.ProductImageServices;
+using BLL.Services.ProductService.ProductService;
+using BLL.Services.ProductServices;
 using DAL.Models;
 using DAL.Presistance.Data;
+using DAL.Presistance.Repositories.CartItems;
+using DAL.Presistance.Repositories.Categories;
+using DAL.Presistance.Repositories.Orders;
+using DAL.Presistance.Repositories.Payments;
+using DAL.Presistance.Repositories.ProductImages;
+using DAL.Presistance.Repositories.Products;
+using DAL.Presistance.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +32,30 @@ namespace E_LapShop
             {
                 OptionsBuilder.UseSqlServer((builder.Configuration.GetConnectionString("DefaultConnection")));
             }));
+
+            builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
+
+            // ==========================
+            // Repositories + UnitOfWork
+            // ==========================
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+            builder.Services.AddScoped<IProductImagesRepository, ProdcutImageRepository>();
+            builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // ==========================
+            // Services (BLL Layer)
+            // ==========================
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IProductImageService, ProductImageService>();
+            builder.Services.AddScoped<ICartItemService, CartItemService>();
+
 
             // ADD Identity new
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
