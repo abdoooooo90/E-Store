@@ -1,0 +1,527 @@
+@model dynamic
+@{
+    ViewData["Title"] = $"{Model.Name} - Furni";
+    Layout = "~/Views/Shared/_FurniLayout.cshtml";
+}
+
+<!-- Start Hero Section -->
+<div class="hero">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-lg-5">
+                <div class="intro-excerpt">
+                    <h1>@Model.Name</h1>
+                    <p class="mb-4">@Model.Description</p>
+                </div>
+            </div>
+            <div class="col-lg-7">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Hero Section -->
+
+<div class="untree_co-section product-section before-footer-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mb-5 mb-md-0">
+                <div class="product-image-gallery">
+                    <div class="main-image mb-3">
+                        <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded shadow-sm" id="mainProductImage">
+                    </div>
+                    <div class="thumbnail-images">
+                        <div class="row">
+                            <div class="col-3">
+                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded thumbnail-img active" onclick="changeMainImage(this.src)">
+                            </div>
+                            <div class="col-3">
+                                <img src="~/furni/images/product-2.png" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
+                            </div>
+                            <div class="col-3">
+                                <img src="~/furni/images/product-3.png" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
+                            </div>
+                            <div class="col-3">
+                                <img src="~/furni/images/product-1.png" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="product-details">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Furni")">Home</a></li>
+                            <li class="breadcrumb-item"><a href="@Url.Action("Shop", "Furni")">Shop</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+                        </ol>
+                    </nav>
+
+                    <h1 class="product-title h2 mb-3">@Model.Name</h1>
+                    
+                    <div class="product-rating mb-3">
+                        <div class="stars">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= Math.Floor(Model.Rating))
+                                {
+                                    <i class="fas fa-star text-warning"></i>
+                                }
+                                else if (i - 0.5 <= Model.Rating)
+                                {
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star text-warning"></i>
+                                }
+                            }
+                        </div>
+                        <span class="rating-text ms-2">(@Model.Rating) • @Model.Reviews reviews</span>
+                    </div>
+
+                    <div class="product-price mb-4">
+                        <span class="current-price h3 text-primary fw-bold">$@Model.Price.ToString("F2")</span>
+                        <span class="original-price text-muted text-decoration-line-through ms-2">$@((Model.Price * 1.2m).ToString("F2"))</span>
+                        <span class="discount-badge badge bg-danger ms-2">20% OFF</span>
+                    </div>
+
+                    <div class="product-description mb-4">
+                        <p class="text-muted">@Model.LongDescription</p>
+                    </div>
+
+                    <div class="product-info mb-4">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Category:</strong> @Model.Category
+                            </div>
+                            <div class="col-6">
+                                <strong>Availability:</strong> 
+                                @if (Model.InStock)
+                                {
+                                    <span class="text-success">In Stock</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger">Out of Stock</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-options mb-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="color" class="form-label"><strong>Color:</strong></label>
+                                <select class="form-select" id="color">
+                                    <option value="natural">Natural Wood</option>
+                                    <option value="black">Black</option>
+                                    <option value="white">White</option>
+                                    <option value="brown">Brown</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="quantity" class="form-label"><strong>Quantity:</strong></label>
+                                <div class="input-group">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">-</button>
+                                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="10">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-actions mb-4">
+                        <div class="row">
+                            <div class="col-md-8 mb-2">
+                                <button class="btn btn-primary btn-lg w-100" onclick="addToCart()">
+                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button class="btn btn-outline-secondary btn-lg w-100" onclick="addToWishlist()">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-success btn-lg w-100" onclick="buyNow()">
+                            <i class="fas fa-bolt me-2"></i>Buy Now
+                        </button>
+                    </div>
+
+                    <div class="product-features">
+                        <div class="row">
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="feature-icon mb-2">
+                                    <img src="~/furni/images/truck.svg" alt="Free Shipping" class="img-fluid" style="width: 30px;">
+                                </div>
+                                <small class="text-muted">Free Shipping</small>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="feature-icon mb-2">
+                                    <img src="~/furni/images/return.svg" alt="Easy Returns" class="img-fluid" style="width: 30px;">
+                                </div>
+                                <small class="text-muted">Easy Returns</small>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="feature-icon mb-2">
+                                    <img src="~/furni/images/support.svg" alt="24/7 Support" class="img-fluid" style="width: 30px;">
+                                </div>
+                                <small class="text-muted">24/7 Support</small>
+                            </div>
+                            <div class="col-6 col-md-3 text-center mb-3">
+                                <div class="feature-icon mb-2">
+                                    <i class="fas fa-shield-alt text-success" style="font-size: 30px;"></i>
+                                </div>
+                                <small class="text-muted">Secure Payment</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Details Tabs -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">Description</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">Specifications</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews (@Model.Reviews)</button>
+                    </li>
+                </ul>
+                <div class="tab-content mt-4" id="productTabsContent">
+                    <div class="tab-pane fade show active" id="description" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>Product Description</h5>
+                                <p>@Model.LongDescription</p>
+                                <p>This premium furniture piece combines modern design with exceptional comfort. Crafted from high-quality materials, it's built to last while maintaining its elegant appearance.</p>
+                                <ul>
+                                    <li>Premium quality materials</li>
+                                    <li>Modern ergonomic design</li>
+                                    <li>Easy assembly with included tools</li>
+                                    <li>Suitable for home and office use</li>
+                                    <li>Available in multiple colors</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <img src="~/furni/images/why-choose-us-img.jpg" alt="Product Details" class="img-fluid rounded">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="specifications" role="tabpanel">
+                        <h5>Technical Specifications</h5>
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr><td><strong>Dimensions</strong></td><td>75cm x 65cm x 85cm</td></tr>
+                                <tr><td><strong>Weight</strong></td><td>12 kg</td></tr>
+                                <tr><td><strong>Material</strong></td><td>Premium Wood & Metal</td></tr>
+                                <tr><td><strong>Color Options</strong></td><td>Natural, Black, White, Brown</td></tr>
+                                <tr><td><strong>Assembly Required</strong></td><td>Yes (30-45 minutes)</td></tr>
+                                <tr><td><strong>Warranty</strong></td><td>2 Years</td></tr>
+                                <tr><td><strong>Care Instructions</strong></td><td>Wipe with damp cloth</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="reviews" role="tabpanel">
+                        <div class="reviews-section">
+                            <div class="review-summary mb-4">
+                                <div class="row">
+                                    <div class="col-md-3 text-center">
+                                        <div class="average-rating">
+                                            <span class="rating-number h2">@Model.Rating</span>
+                                            <div class="stars mb-2">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= Math.Floor(Model.Rating))
+                                                    {
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star text-warning"></i>
+                                                    }
+                                                }
+                                            </div>
+                                            <p class="text-muted">Based on @Model.Reviews reviews</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="rating-breakdown">
+                                            <div class="rating-bar mb-2">
+                                                <span>5 stars</span>
+                                                <div class="progress mx-3" style="height: 10px;">
+                                                    <div class="progress-bar bg-warning" style="width: 70%"></div>
+                                                </div>
+                                                <span>70%</span>
+                                            </div>
+                                            <div class="rating-bar mb-2">
+                                                <span>4 stars</span>
+                                                <div class="progress mx-3" style="height: 10px;">
+                                                    <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                                </div>
+                                                <span>20%</span>
+                                            </div>
+                                            <div class="rating-bar mb-2">
+                                                <span>3 stars</span>
+                                                <div class="progress mx-3" style="height: 10px;">
+                                                    <div class="progress-bar bg-warning" style="width: 7%"></div>
+                                                </div>
+                                                <span>7%</span>
+                                            </div>
+                                            <div class="rating-bar mb-2">
+                                                <span>2 stars</span>
+                                                <div class="progress mx-3" style="height: 10px;">
+                                                    <div class="progress-bar bg-warning" style="width: 2%"></div>
+                                                </div>
+                                                <span>2%</span>
+                                            </div>
+                                            <div class="rating-bar mb-2">
+                                                <span>1 star</span>
+                                                <div class="progress mx-3" style="height: 10px;">
+                                                    <div class="progress-bar bg-warning" style="width: 1%"></div>
+                                                </div>
+                                                <span>1%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="individual-reviews">
+                                <div class="review-item border-bottom pb-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong>Sarah Johnson</strong>
+                                            <div class="stars">
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">2 days ago</small>
+                                    </div>
+                                    <p>Excellent quality chair! Very comfortable and looks great in my home office. Assembly was straightforward and the instructions were clear.</p>
+                                </div>
+
+                                <div class="review-item border-bottom pb-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong>Mike Chen</strong>
+                                            <div class="stars">
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="far fa-star text-warning"></i>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">1 week ago</small>
+                                    </div>
+                                    <p>Good value for money. The chair is sturdy and comfortable. Only minor complaint is that it took a bit longer to assemble than expected.</p>
+                                </div>
+
+                                <div class="review-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong>Emma Wilson</strong>
+                                            <div class="stars">
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                                <i class="fas fa-star text-warning"></i>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">2 weeks ago</small>
+                                    </div>
+                                    <p>Love this chair! Perfect for my dining room. The design is modern and elegant, and it's very comfortable to sit in for long periods.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="mb-4">Related Products</h3>
+                <div class="row">
+                    <div class="col-12 col-md-4 col-lg-3 mb-4">
+                        <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 1 })">
+                            <img src="~/furni/images/product-1.png" class="img-fluid product-thumbnail">
+                            <h3 class="product-title">Nordic Chair</h3>
+                            <strong class="product-price">$50.00</strong>
+                            <span class="icon-cross">
+                                <img src="~/furni/images/cross.svg" class="img-fluid">
+                            </span>
+                        </a>
+                    </div>
+                    <div class="col-12 col-md-4 col-lg-3 mb-4">
+                        <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 2 })">
+                            <img src="~/furni/images/product-2.png" class="img-fluid product-thumbnail">
+                            <h3 class="product-title">Kruzo Aero Chair</h3>
+                            <strong class="product-price">$78.00</strong>
+                            <span class="icon-cross">
+                                <img src="~/furni/images/cross.svg" class="img-fluid">
+                            </span>
+                        </a>
+                    </div>
+                    <div class="col-12 col-md-4 col-lg-3 mb-4">
+                        <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 3 })">
+                            <img src="~/furni/images/product-3.png" class="img-fluid product-thumbnail">
+                            <h3 class="product-title">Ergonomic Chair</h3>
+                            <strong class="product-price">$43.00</strong>
+                            <span class="icon-cross">
+                                <img src="~/furni/images/cross.svg" class="img-fluid">
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.thumbnail-img {
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+.thumbnail-img:hover,
+.thumbnail-img.active {
+    border-color: #3b5d50;
+}
+
+.product-title {
+    color: #2f2f2f;
+}
+
+.breadcrumb-item a {
+    color: #3b5d50;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.rating-bar {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.rating-bar span:first-child {
+    width: 60px;
+}
+
+.rating-bar span:last-child {
+    width: 40px;
+    text-align: right;
+}
+
+.review-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.discount-badge {
+    font-size: 12px;
+}
+
+.product-actions .btn {
+    border-radius: 8px;
+}
+
+.nav-tabs .nav-link {
+    color: #3b5d50;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-tabs .nav-link.active {
+    background: none;
+    border-bottom-color: #3b5d50;
+    color: #3b5d50;
+}
+</style>
+
+<script>
+function changeMainImage(src) {
+    document.getElementById('mainProductImage').src = src;
+    
+    // Update active thumbnail
+    document.querySelectorAll('.thumbnail-img').forEach(img => {
+        img.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+function increaseQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    const currentValue = parseInt(quantityInput.value);
+    if (currentValue < 10) {
+        quantityInput.value = currentValue + 1;
+    }
+}
+
+function decreaseQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    const currentValue = parseInt(quantityInput.value);
+    if (currentValue > 1) {
+        quantityInput.value = currentValue - 1;
+    }
+}
+
+function addToCart() {
+    const quantity = document.getElementById('quantity').value;
+    const color = document.getElementById('color').value;
+    
+    // Show success message
+    alert(`Added ${quantity} item(s) to cart in ${color} color!`);
+    
+    // Here you would typically make an AJAX call to add the item to the cart
+}
+
+function addToWishlist() {
+    alert('Added to wishlist!');
+    
+    // Toggle heart icon
+    const heartIcon = event.target.querySelector('i') || event.target;
+    if (heartIcon.classList.contains('far')) {
+        heartIcon.classList.remove('far');
+        heartIcon.classList.add('fas');
+        heartIcon.style.color = '#dc3545';
+    } else {
+        heartIcon.classList.remove('fas');
+        heartIcon.classList.add('far');
+        heartIcon.style.color = '';
+    }
+}
+
+function buyNow() {
+    const quantity = document.getElementById('quantity').value;
+    const color = document.getElementById('color').value;
+    
+    alert(`Proceeding to checkout with ${quantity} item(s) in ${color} color!`);
+    
+    // Redirect to checkout
+    window.location.href = '@Url.Action("Checkout", "Furni")';
+}
+</script>

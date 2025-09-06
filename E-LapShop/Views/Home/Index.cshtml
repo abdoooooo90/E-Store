@@ -1,4 +1,4 @@
-﻿@* @{
+@* @{
     ViewBag.Title = "Home";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -52,8 +52,10 @@
 <section class="py-5">
     <div class="container px-4 px-lg-5 mt-5">
         <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-            @foreach (var product in Model)
+            @if (Model != null && Model.Any())
             {
+                @foreach (var product in Model)
+                {
                 <div class="col mb-5">
                     <div class="card h-100">
                         <img class="card-img-top" src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : "https://dummyimage.com/450x300/dee2e6/6c757d.jpg")" alt="@product.Name" />
@@ -67,6 +69,16 @@
                         <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center">
                             <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-dark mt-auto">View Details</a>
                         </div>
+                    </div>
+                </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <h4>No products available</h4>
+                        <p>There are currently no products in the store. Please check back later!</p>
                     </div>
                 </div>
             }

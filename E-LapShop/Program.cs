@@ -87,7 +87,7 @@ namespace E_LapShop
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Furni}/{action=Index}/{id?}");
 
             // Seed Roles & Admin
             await SeedDataAsync(app);
