@@ -1,0 +1,128 @@
+@model IEnumerable<BLL.Models.WishlistDtos.WishlistDto>
+
+@{
+    ViewBag.Title = "My Wishlist";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-heart text-danger"></i> My Wishlist</h2>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
+                    <i class="fas fa-shopping-bag"></i> Continue Shopping
+                </a>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="row">
+                    @foreach (var item in Model)
+                    {
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                <img src="@(!string.IsNullOrEmpty(item.ProductImageUrl) ? item.ProductImageUrl : "https://dummyimage.com/300x200/dee2e6/6c757d.jpg")" 
+                                     class="card-img-top" alt="@item.ProductName" style="height: 200px; object-fit: cover;">
+                                
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">@item.ProductName</h5>
+                                    <p class="text-muted mb-2">@item.ProductBrand</p>
+                                    <div class="mt-auto">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h4 class="text-success mb-0">$@item.ProductPrice.ToString("F2")</h4>
+                                            <span class="badge @(item.ProductStock > 0 ? "bg-success" : "bg-danger")">
+                                                @(item.ProductStock > 0 ? "In Stock" : "Out of Stock")
+                                            </span>
+                                        </div>
+                                        
+                                        <small class="text-muted">Added on @item.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-grid gap-2">
+                                        @if (item.ProductStock > 0)
+                                        {
+                                            <div class="btn-group" role="group">
+                                                <form asp-action="MoveToCart" method="post" class="d-inline">
+                                                    <input type="hidden" name="id" value="@item.Id" />
+                                                    <input type="hidden" name="quantity" value="1" />
+                                                    <button type="submit" class="btn btn-primary">
+                                                        <i class="fas fa-shopping-cart"></i> Move to Cart
+                                                    </button>
+                                                </form>
+                                                <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId" 
+                                                   class="btn btn-outline-secondary">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId" 
+                                               class="btn btn-outline-secondary">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                        }
+                                        
+                                        <form asp-action="Remove" method="post" class="d-inline" 
+                                              onsubmit="return confirm('Are you sure you want to remove this item from your wishlist?');">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                <i class="fas fa-trash"></i> Remove from Wishlist
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5>Wishlist Summary</h5>
+                                <p class="mb-2">Total Items: <strong>@Model.Count()</strong></p>
+                                <p class="mb-0">Total Value: <strong>$@Model.Sum(x => x.ProductPrice).ToString("F2")</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <div class="card">
+                        <div class="card-body">
+                            <i class="fas fa-heart fa-4x text-muted mb-4"></i>
+                            <h3>Your Wishlist is Empty</h3>
+                            <p class="text-muted mb-4">Start adding products you love to your wishlist!</p>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">
+                                <i class="fas fa-shopping-bag"></i> Start Shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

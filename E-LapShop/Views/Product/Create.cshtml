@@ -1,4 +1,4 @@
-﻿@model BLL.Models.ProductDtos.ProductCreateDto
+@model BLL.Models.ProductDtos.ProductCreateDto
 
 @{
     ViewBag.Title = "Create Product";
@@ -17,11 +17,6 @@
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Brand" class="form-label"></label>
-                    <input asp-for="Brand" class="form-control" />
-                    <span asp-validation-for="Brand" class="text-danger"></span>
-                </div>
 
                 <div class="mb-3">
                     <label asp-for="Description" class="form-label"></label>
@@ -42,9 +37,9 @@
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Stock" class="form-label"></label>
-                    <input asp-for="Stock" class="form-control" />
-                    <span asp-validation-for="Stock" class="text-danger"></span>
+                    <label asp-for="StockQuantity" class="form-label"></label>
+                    <input asp-for="StockQuantity" class="form-control" />
+                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">

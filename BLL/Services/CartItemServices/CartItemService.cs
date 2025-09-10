@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BLL.Models.CartItemDtos;
 using DAL.Models;
 using DAL.Presistance.UnitOfWork;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,12 @@ namespace BLL.Services.CartItemServices
             return _mapper.Map<IEnumerable<CartItemDto>>(items);
         }
 
+        public async Task<IEnumerable<CartItemDto>> GetUserCartAsync(string userId)
+        {
+            var items = await _unitOfWork.CartItems.GetByUserIdAsync(userId);
+            return _mapper.Map<IEnumerable<CartItemDto>>(items);
+        }
+
         public async Task<CartItemDto?> GetByIdAsync(int id)
         {
             var item = await _unitOfWork.CartItems.GetByIdAsync(id);
@@ -35,20 +42,112 @@ namespace BLL.Services.CartItemServices
 
         public async Task<CartItemDto> CreateAsync(CartItemDto dto)
         {
-            var item = _mapper.Map<CartItem>(dto);
-            _unitOfWork.CartItems.Add(item);
+            var cartItem = _mapper.Map<CartItem>(dto);
+            _unitOfWork.CartItems.Add(cartItem);
             await _unitOfWork.CompleteAsync();
-            return _mapper.Map<CartItemDto>(item);
+            return _mapper.Map<CartItemDto>(cartItem);
+        }
+
+        public async Task<bool> AddToCartAsync(CartItemCreateDto dto)
+        {
+            try
+            {
+                // Check if item already exists in cart
+                var existingCartItem = await _unitOfWork.CartItems
+                .GetByUserIdAndProductIdAsync(dto.UserId, dto.ProductId);
+
+                if (existingCartItem != null)
+                {
+                    // Update quantity
+                    existingCartItem.Quantity += dto.Quantity;
+                    _unitOfWork.CartItems.Update(existingCartItem);
+                }
+                else
+                {
+                    // Add new item
+                    var newItem = _mapper.Map<CartItem>(dto);
+                    _unitOfWork.CartItems.Add(newItem);
+                }
+
+                return await _unitOfWork.CompleteAsync() > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateQuantityAsync(int cartItemId, int quantity)
+        {
+            try
+            {
+                var cartItem = await _unitOfWork.CartItems.GetByIdAsync(cartItemId);
+                if (cartItem == null) return false;
+
+                if (quantity <= 0)
+                {
+                    _unitOfWork.CartItems.Delete(cartItem);
+                }
+                else
+                {
+                    cartItem.Quantity = quantity;
+                    _unitOfWork.CartItems.Update(cartItem);
+                }
+
+                return await _unitOfWork.CompleteAsync() > 0;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var item = await _unitOfWork.CartItems.GetByIdAsync(id);
-            if (item == null) return false;
+            try
+            {
+                var item = await _unitOfWork.CartItems.GetByIdAsync(id);
+                if (item == null) return false;
 
-            _unitOfWork.CartItems.Delete(item);
-            await _unitOfWork.CompleteAsync();
-            return true;
+                _unitOfWork.CartItems.Delete(item);
+                return await _unitOfWork.CompleteAsync() > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ClearUserCartAsync(string userId)
+        {
+            try
+            {
+                var cartItems = await _unitOfWork.CartItems
+                .GetByUserIdAsync(userId);
+
+                foreach (var item in cartItems)
+                {
+                    _unitOfWork.CartItems.Delete(item);
+                }
+
+                return await _unitOfWork.CompleteAsync() > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<int> GetCartCountAsync(string userId)
+        {
+            return await _unitOfWork.CartItems
+                .GetCountByUserIdAsync(userId);
+        }
+
+        public async Task<decimal> GetCartTotalAsync(string userId)
+        {
+            var items = await _unitOfWork.CartItems.GetByUserIdAsync(userId);
+            return items.Sum(c => c.Product.Price * c.Quantity);
         }
     }
 }

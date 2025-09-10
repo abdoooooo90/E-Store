@@ -1,0 +1,325 @@
+@{
+    ViewBag.Title = "Login / Register";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - E-Store</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+
+    <!-- Success Message Display -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <script>
+            // Auto-hide success message after 5 seconds
+            setTimeout(function() {
+                var alert = document.querySelector('.alert-success');
+                if (alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        </script>
+    }
+
+    <!-- Back to Home Link -->
+    <div class="position-absolute top-0 start-0 m-3">
+        <a href="@Url.Action("Index", "Furni")" class="btn btn-outline-light">
+            <i class="fas fa-arrow-left me-2"></i>Back to Home
+        </a>
+    </div>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center p-0">
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs nav-fill border-0" id="authTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active text-white border-0 py-3" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link text-white border-0 py-3" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="tab-content" id="authTabsContent">
+                        <!-- Login Tab -->
+                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                            <div class="text-center mb-4">
+                                <h3 class="fw-bold text-primary">Welcome Back!</h3>
+                                <p class="text-muted">Sign in to your account</p>
+                            </div>
+                            
+                            <form asp-action="Login" method="post" id="loginForm">
+                                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-envelope me-2 text-primary"></i>Email Address
+                                    </label>
+                                    <input type="email" name="email" class="form-control form-control-lg" placeholder="Enter your email" required />
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-lock me-2 text-primary"></i>Password
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" name="password" class="form-control form-control-lg" placeholder="Enter your password" required id="loginPassword" />
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('loginPassword', this)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">
+                                        Remember me
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                                </button>
+                                
+                                <div class="text-center">
+                                    <a href="#" class="text-decoration-none">Forgot your password?</a>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Register Tab -->
+                        <div class="tab-pane fade" id="register" role="tabpanel">
+                            <div class="text-center mb-4">
+                                <h3 class="fw-bold text-success">Create Account</h3>
+                                <p class="text-muted">Join us today and start shopping</p>
+                            </div>
+                            
+                            <form asp-action="Register" method="post" id="registerForm">
+                                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-user me-2 text-success"></i>Full Name
+                                    </label>
+                                    <input type="text" name="fullName" class="form-control form-control-lg" placeholder="Enter your full name" required />
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-envelope me-2 text-success"></i>Email Address
+                                    </label>
+                                    <input type="email" name="email" class="form-control form-control-lg" placeholder="Enter your email" required />
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-lock me-2 text-success"></i>Password
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" name="password" class="form-control form-control-lg" placeholder="Create a password" required id="registerPassword" />
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('registerPassword', this)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">
+                                        <small>Password must be at least 6 characters long</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-lock me-2 text-success"></i>Confirm Password
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" name="confirmPassword" class="form-control form-control-lg" placeholder="Confirm your password" required id="confirmPassword" />
+                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword', this)">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                    <label class="form-check-label" for="agreeTerms">
+                                        I agree to the <a href="#" class="text-decoration-none">Terms of Service</a> and <a href="#" class="text-decoration-none">Privacy Policy</a>
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-user-plus me-2"></i>Create Account
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-light text-center py-3">
+                    <div class="row">
+                        <div class="col-12">
+                            <p class="mb-2 text-muted">Or continue with</p>
+                            <button class="btn btn-outline-danger me-2" type="button">
+                                <i class="fab fa-google me-2"></i>Google
+                            </button>
+                            <button class="btn btn-outline-primary" type="button">
+                                <i class="fab fa-facebook-f me-2"></i>Facebook
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.nav-tabs .nav-link {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+}
+
+.nav-tabs .nav-link.active {
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    font-weight: 600;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-lg {
+    padding: 12px 20px;
+    font-weight: 600;
+}
+
+.input-group .btn {
+    border-left: none;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.tab-pane {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.text-primary { color: #0d6efd !important; }
+.text-success { color: #198754 !important; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password toggle functionality
+    window.togglePassword = function(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    };
+    
+    // Form validation for register
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            const password = document.querySelector('#register input[name="password"]').value;
+            const confirmPassword = document.querySelector('#register input[name="confirmPassword"]').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                return false;
+            }
+            
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('Password must be at least 6 characters long!');
+                return false;
+            }
+        });
+    }
+    
+    // Tab switching with URL hash support
+    const hash = window.location.hash;
+    if (hash === '#register') {
+        const registerTab = document.getElementById('register-tab');
+        const registerTabPane = document.getElementById('register');
+        const loginTab = document.getElementById('login-tab');
+        const loginTabPane = document.getElementById('login');
+        
+        loginTab.classList.remove('active');
+        loginTabPane.classList.remove('show', 'active');
+        registerTab.classList.add('active');
+        registerTabPane.classList.add('show', 'active');
+    }
+    
+    // Update URL hash when tabs change
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            const target = e.target.getAttribute('data-bs-target');
+            if (target === '#register') {
+                window.history.replaceState(null, null, '#register');
+            } else {
+                window.history.replaceState(null, null, '#login');
+            }
+        });
+    });
+});
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

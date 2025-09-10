@@ -50,8 +50,23 @@
                 </ul>
 
                 <ul class="custom-navbar-cta navbar-nav mb-2 mb-md-0 ms-5">
-                    <li><a class="nav-link" href="#"><img src="~/furni/images/user.svg"></a></li>
-                    <li><a class="nav-link" href="@Url.Action("Cart", "Furni")"><img src="~/furni/images/cart.svg"></a></li>
+                    <li><a class="nav-link" href="@Url.Action("Auth", "Account")"><img src="~/furni/images/user.svg"></a></li>
+                    <li class="position-relative">
+                        <a class="nav-link" href="@Url.Action("Index", "Wishlist")">
+                            <i class="fas fa-heart" style="font-size: 18px; color: #f9bf29;"></i>
+                            <span id="wishlist-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                                0
+                            </span>
+                        </a>
+                    </li>
+                    <li class="position-relative">
+                        <a class="nav-link" href="@Url.Action("Cart", "Furni")">
+                            <img src="~/furni/images/cart.svg">
+                            <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                                0
+                            </span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

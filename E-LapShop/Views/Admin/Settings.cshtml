@@ -1,0 +1,478 @@
+@{
+    ViewData["Title"] = "إعدادات المتجر";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-cog me-2"></i>إعدادات المتجر</h2>
+    <button class="btn btn-success" onclick="saveAllSettings()">
+        <i class="fas fa-save me-2"></i>حفظ جميع الإعدادات
+    </button>
+</div>
+
+<!-- تبويبات الإعدادات -->
+<ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
+            <i class="fas fa-store me-2"></i>إعدادات عامة
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button" role="tab">
+            <i class="fas fa-credit-card me-2"></i>طرق الدفع
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">
+            <i class="fas fa-shipping-fast me-2"></i>الشحن والتوصيل
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
+            <i class="fas fa-bell me-2"></i>الإشعارات
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+            <i class="fas fa-shield-alt me-2"></i>الأمان
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content mt-4" id="settingsTabContent">
+    <!-- الإعدادات العامة -->
+    <div class="tab-pane fade show active" id="general" role="tabpanel">
+        <div class="page-header">
+            <h5 class="mb-4"><i class="fas fa-store me-2"></i>معلومات المتجر</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="storeName" class="form-label">اسم المتجر</label>
+                        <input type="text" class="form-control" id="storeName" value="متجر الأثاث الفاخر">
+                    </div>
+                    <div class="mb-3">
+                        <label for="storeDescription" class="form-label">وصف المتجر</label>
+                        <textarea class="form-control" id="storeDescription" rows="3">متجر متخصص في بيع الأثاث الفاخر والحديث لجميع أنحاء المنزل</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storeEmail" class="form-label">البريد الإلكتروني</label>
+                        <input type="email" class="form-control" id="storeEmail" value="info@furnistore.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="storePhone" class="form-label">رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="storePhone" value="+966501234567">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="storeAddress" class="form-label">العنوان</label>
+                        <textarea class="form-control" id="storeAddress" rows="3">الرياض، المملكة العربية السعودية</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="storeLogo" class="form-label">شعار المتجر</label>
+                        <input type="file" class="form-control" id="storeLogo" accept="image/*">
+                        <div class="mt-2">
+                            <img src="/images/logo.png" alt="شعار المتجر" class="img-thumbnail" style="max-height: 100px;">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="currency" class="form-label">العملة</label>
+                        <select class="form-select" id="currency">
+                            <option value="SAR" selected>ريال سعودي (SAR)</option>
+                            <option value="USD">دولار أمريكي (USD)</option>
+                            <option value="EUR">يورو (EUR)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="timezone" class="form-label">المنطقة الزمنية</label>
+                        <select class="form-select" id="timezone">
+                            <option value="Asia/Riyadh" selected>الرياض (GMT+3)</option>
+                            <option value="Asia/Dubai">دبي (GMT+4)</option>
+                            <option value="UTC">UTC (GMT+0)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إعدادات الدفع -->
+    <div class="tab-pane fade" id="payment" role="tabpanel">
+        <div class="page-header">
+            <h5 class="mb-4"><i class="fas fa-credit-card me-2"></i>طرق الدفع المتاحة</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6><i class="fas fa-credit-card me-2"></i>البطاقات الائتمانية</h6>
+                                    <small class="text-muted">Visa, MasterCard, American Express</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="creditCardEnabled" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6><i class="fab fa-paypal me-2"></i>PayPal</h6>
+                                    <small class="text-muted">الدفع عبر PayPal</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="paypalEnabled" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6><i class="fas fa-money-bill me-2"></i>الدفع عند الاستلام</h6>
+                                    <small class="text-muted">الدفع النقدي عند التسليم</small>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="codEnabled" checked>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="paymentGateway" class="form-label">بوابة الدفع الرئيسية</label>
+                        <select class="form-select" id="paymentGateway">
+                            <option value="stripe" selected>Stripe</option>
+                            <option value="paypal">PayPal</option>
+                            <option value="square">Square</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="taxRate" class="form-label">معدل الضريبة (%)</label>
+                        <input type="number" class="form-control" id="taxRate" value="15" min="0" max="100" step="0.01">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="minOrderAmount" class="form-label">أقل مبلغ للطلب</label>
+                        <input type="number" class="form-control" id="minOrderAmount" value="50" min="0">
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="autoCapture" checked>
+                        <label class="form-check-label" for="autoCapture">
+                            خصم المبلغ تلقائياً عند الطلب
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إعدادات الشحن -->
+    <div class="tab-pane fade" id="shipping" role="tabpanel">
+        <div class="page-header">
+            <h5 class="mb-4"><i class="fas fa-shipping-fast me-2"></i>خيارات الشحن والتوصيل</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="freeShippingThreshold" class="form-label">الحد الأدنى للشحن المجاني</label>
+                        <input type="number" class="form-control" id="freeShippingThreshold" value="500" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="standardShippingCost" class="form-label">تكلفة الشحن العادي</label>
+                        <input type="number" class="form-control" id="standardShippingCost" value="25" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="expressShippingCost" class="form-label">تكلفة الشحن السريع</label>
+                        <input type="number" class="form-control" id="expressShippingCost" value="50" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="processingTime" class="form-label">وقت معالجة الطلب (أيام)</label>
+                        <input type="number" class="form-control" id="processingTime" value="1" min="0" max="30">
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="shippingZones" class="form-label">مناطق الشحن</label>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="riyadh" checked>
+                                <label class="form-check-label" for="riyadh">الرياض</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="jeddah" checked>
+                                <label class="form-check-label" for="jeddah">جدة</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="dammam" checked>
+                                <label class="form-check-label" for="dammam">الدمام</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="mecca">
+                                <label class="form-check-label" for="mecca">مكة المكرمة</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="medina">
+                                <label class="form-check-label" for="medina">المدينة المنورة</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="trackingEnabled" checked>
+                        <label class="form-check-label" for="trackingEnabled">
+                            تفعيل تتبع الشحنات
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إعدادات الإشعارات -->
+    <div class="tab-pane fade" id="notifications" role="tabpanel">
+        <div class="page-header">
+            <h5 class="mb-4"><i class="fas fa-bell me-2"></i>إعدادات الإشعارات</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>إشعارات البريد الإلكتروني</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="emailNewOrder" checked>
+                        <label class="form-check-label" for="emailNewOrder">
+                            طلب جديد
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="emailLowStock" checked>
+                        <label class="form-check-label" for="emailLowStock">
+                            نفاد المخزون
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="emailNewUser" checked>
+                        <label class="form-check-label" for="emailNewUser">
+                            مستخدم جديد
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="emailDailyReport">
+                        <label class="form-check-label" for="emailDailyReport">
+                            التقرير اليومي
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6>إشعارات SMS</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="smsOrderStatus" checked>
+                        <label class="form-check-label" for="smsOrderStatus">
+                            تحديث حالة الطلب
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="smsDelivery" checked>
+                        <label class="form-check-label" for="smsDelivery">
+                            تأكيد التسليم
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="smsPromotion">
+                        <label class="form-check-label" for="smsPromotion">
+                            العروض والخصومات
+                        </label>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="smsProvider" class="form-label">مزود خدمة SMS</label>
+                        <select class="form-select" id="smsProvider">
+                            <option value="twilio">Twilio</option>
+                            <option value="nexmo">Nexmo</option>
+                            <option value="local" selected>مزود محلي</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إعدادات الأمان -->
+    <div class="tab-pane fade" id="security" role="tabpanel">
+        <div class="page-header">
+            <h5 class="mb-4"><i class="fas fa-shield-alt me-2"></i>إعدادات الأمان</h5>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="sessionTimeout" class="form-label">مهلة انتهاء الجلسة (دقائق)</label>
+                        <input type="number" class="form-control" id="sessionTimeout" value="30" min="5" max="480">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="maxLoginAttempts" class="form-label">عدد محاولات تسجيل الدخول المسموحة</label>
+                        <input type="number" class="form-control" id="maxLoginAttempts" value="5" min="3" max="10">
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="twoFactorAuth">
+                        <label class="form-check-label" for="twoFactorAuth">
+                            تفعيل المصادقة الثنائية
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="emailVerification" checked>
+                        <label class="form-check-label" for="emailVerification">
+                            إجبار تأكيد البريد الإلكتروني
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="passwordMinLength" class="form-label">الحد الأدنى لطول كلمة المرور</label>
+                        <input type="number" class="form-control" id="passwordMinLength" value="8" min="6" max="20">
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="requireUppercase" checked>
+                        <label class="form-check-label" for="requireUppercase">
+                            يتطلب أحرف كبيرة
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="requireNumbers" checked>
+                        <label class="form-check-label" for="requireNumbers">
+                            يتطلب أرقام
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="requireSpecialChars">
+                        <label class="form-check-label" for="requireSpecialChars">
+                            يتطلب رموز خاصة
+                        </label>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="logSecurityEvents" checked>
+                        <label class="form-check-label" for="logSecurityEvents">
+                            تسجيل الأحداث الأمنية
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function saveAllSettings() {
+        const settings = {
+            general: {
+                storeName: document.getElementById('storeName').value,
+                storeDescription: document.getElementById('storeDescription').value,
+                storeEmail: document.getElementById('storeEmail').value,
+                storePhone: document.getElementById('storePhone').value,
+                storeAddress: document.getElementById('storeAddress').value,
+                currency: document.getElementById('currency').value,
+                timezone: document.getElementById('timezone').value
+            },
+            payment: {
+                creditCardEnabled: document.getElementById('creditCardEnabled').checked,
+                paypalEnabled: document.getElementById('paypalEnabled').checked,
+                codEnabled: document.getElementById('codEnabled').checked,
+                paymentGateway: document.getElementById('paymentGateway').value,
+                taxRate: document.getElementById('taxRate').value,
+                minOrderAmount: document.getElementById('minOrderAmount').value,
+                autoCapture: document.getElementById('autoCapture').checked
+            },
+            shipping: {
+                freeShippingThreshold: document.getElementById('freeShippingThreshold').value,
+                standardShippingCost: document.getElementById('standardShippingCost').value,
+                expressShippingCost: document.getElementById('expressShippingCost').value,
+                processingTime: document.getElementById('processingTime').value,
+                trackingEnabled: document.getElementById('trackingEnabled').checked
+            },
+            notifications: {
+                emailNewOrder: document.getElementById('emailNewOrder').checked,
+                emailLowStock: document.getElementById('emailLowStock').checked,
+                emailNewUser: document.getElementById('emailNewUser').checked,
+                emailDailyReport: document.getElementById('emailDailyReport').checked,
+                smsOrderStatus: document.getElementById('smsOrderStatus').checked,
+                smsDelivery: document.getElementById('smsDelivery').checked,
+                smsPromotion: document.getElementById('smsPromotion').checked,
+                smsProvider: document.getElementById('smsProvider').value
+            },
+            security: {
+                sessionTimeout: document.getElementById('sessionTimeout').value,
+                maxLoginAttempts: document.getElementById('maxLoginAttempts').value,
+                twoFactorAuth: document.getElementById('twoFactorAuth').checked,
+                emailVerification: document.getElementById('emailVerification').checked,
+                passwordMinLength: document.getElementById('passwordMinLength').value,
+                requireUppercase: document.getElementById('requireUppercase').checked,
+                requireNumbers: document.getElementById('requireNumbers').checked,
+                requireSpecialChars: document.getElementById('requireSpecialChars').checked,
+                logSecurityEvents: document.getElementById('logSecurityEvents').checked
+            }
+        };
+
+        fetch('/Admin/SaveSettings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(settings)
+        })
+        .then(response => {
+            if (response.ok) {
+                // عرض رسالة نجاح
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>تم حفظ الإعدادات بنجاح!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.container-fluid').insertBefore(alert, document.querySelector('.d-flex'));
+                
+                // إخفاء الرسالة بعد 3 ثواني
+                setTimeout(() => {
+                    alert.remove();
+                }, 3000);
+            } else {
+                alert('حدث خطأ أثناء حفظ الإعدادات');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء حفظ الإعدادات');
+        });
+    }
+
+    // حفظ تلقائي عند تغيير القيم
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+        element.addEventListener('change', function() {
+            // يمكن إضافة حفظ تلقائي هنا إذا رغبت
+            console.log('Setting changed:', this.id, this.value || this.checked);
+        });
+    });
+</script>
+}

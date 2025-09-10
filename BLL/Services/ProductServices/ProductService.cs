@@ -1,6 +1,6 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BLL.Models.ProductDtos;
-using BLL.Services.ProductService.ProductService;
+using BLL.Services.ProductServices;
 using DAL.Models;
 using DAL.Presistance.Repositories.Generic;
 using DAL.Presistance.Repositories.Products;
@@ -26,14 +26,14 @@ namespace BLL.Services.ProductServices
 
         public async Task<IEnumerable<ProductDto>> GetAllAsync()
         {
-            var products = await _unitOfWork.Products.GetAllAsync();
+            var products = await _unitOfWork.Products.GetAllWithCategoryAsync();
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public async Task<ProductDetailsDto?> GetByIdAsync(int id)
+        public async Task<ProductDto?> GetByIdAsync(int id)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(id);
-            return product == null ? null : _mapper.Map<ProductDetailsDto>(product);
+            return product == null ? null : _mapper.Map<ProductDto>(product);
         }
 
         public async Task<ProductDto> CreateAsync(ProductCreateDto dto)
@@ -57,12 +57,20 @@ namespace BLL.Services.ProductServices
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var product = await _unitOfWork.Products.GetByIdAsync(id);
-            if (product == null) return false;
+            try
+            {
+                var product = await _unitOfWork.Products.GetByIdAsync(id);
+                if (product == null) return false;
 
-            _unitOfWork.Products.Delete(product);
-            await _unitOfWork.CompleteAsync();
-            return true;
+                _unitOfWork.Products.Delete(product);
+                var result = await _unitOfWork.CompleteAsync();
+                return result > 0;
+            }
+            catch (Exception)
+            {
+                // في حالة Optimistic Concurrency Exception أو أي خطأ آخر
+                return false;
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-@model dynamic
+@using BLL.Models.ProductDtos
+@model ProductDto
 @{
     ViewData["Title"] = $"{Model.Name} - Furni";
     Layout = "~/Views/Shared/_FurniLayout.cshtml";
@@ -64,43 +65,32 @@
                         <div class="stars">
                             @for (int i = 1; i <= 5; i++)
                             {
-                                if (i <= Math.Floor(Model.Rating))
-                                {
-                                    <i class="fas fa-star text-warning"></i>
-                                }
-                                else if (i - 0.5 <= Model.Rating)
-                                {
-                                    <i class="fas fa-star-half-alt text-warning"></i>
-                                }
-                                else
-                                {
-                                    <i class="far fa-star text-warning"></i>
-                                }
+                                <i class="fas fa-star text-warning"></i>
                             }
                         </div>
-                        <span class="rating-text ms-2">(@Model.Rating) • @Model.Reviews reviews</span>
+                        <span class="rating-text ms-2">(4.5) • 24 reviews</span>
                     </div>
 
                     <div class="product-price mb-4">
-                        <span class="current-price h3 text-primary fw-bold">$@Model.Price.ToString("F2")</span>
+                        <span class="current-price h3 fw-bold" style="color: #3b5d50;">$@Model.Price.ToString("F2")</span>
                         <span class="original-price text-muted text-decoration-line-through ms-2">$@((Model.Price * 1.2m).ToString("F2"))</span>
-                        <span class="discount-badge badge bg-danger ms-2">20% OFF</span>
+                        <span class="discount-badge badge ms-2" style="background-color: #3b5d50; color: white;">20% OFF</span>
                     </div>
 
                     <div class="product-description mb-4">
-                        <p class="text-muted">@Model.LongDescription</p>
+                        <p class="text-muted">@Model.Description</p>
                     </div>
 
                     <div class="product-info mb-4">
                         <div class="row">
                             <div class="col-6">
-                                <strong>Category:</strong> @Model.Category
+                                <strong>Category:</strong> @Model.CategoryName
                             </div>
                             <div class="col-6">
                                 <strong>Availability:</strong> 
-                                @if (Model.InStock)
+                                @if (Model.Stock > 0)
                                 {
-                                    <span class="text-success">In Stock</span>
+                                    <span class="text-success">In Stock (@Model.Stock available)</span>
                                 }
                                 else
                                 {
@@ -125,7 +115,7 @@
                                 <label for="quantity" class="form-label"><strong>Quantity:</strong></label>
                                 <div class="input-group">
                                     <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">-</button>
-                                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="10">
+                                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" max="@Model.Stock">
                                     <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">+</button>
                                 </div>
                             </div>
@@ -134,20 +124,40 @@
 
                     <div class="product-actions mb-4">
                         <div class="row">
-                            <div class="col-md-8 mb-2">
-                                <button class="btn btn-primary btn-lg w-100" onclick="addToCart()">
-                                    <i class="fas fa-shopping-cart me-2"></i>Add to Cart
-                                </button>
+                            <div class="col-12 mb-3">
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <button class="btn btn-lg w-100 add-to-cart-btn" data-product-id="@Model.Id" style="background-color: #3b5d50; color: white; border: none;">
+                                        <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Auth", "Account")" class="btn btn-lg w-100" style="background-color: #3b5d50; color: white; border: none;">
+                                        <i class="fas fa-shopping-cart me-2"></i>Login to Add to Cart
+                                    </a>
+                                }
                             </div>
-                            <div class="col-md-4 mb-2">
-                                <button class="btn btn-outline-secondary btn-lg w-100" onclick="addToWishlist()">
-                                    <i class="far fa-heart"></i>
+                            <div class="col-12 mb-3">
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <button class="btn btn-lg w-100 wishlist-btn" data-product-id="@Model.Id" style="background-color: #f9bf29; color: #2f2f2f; border: none;">
+                                        <i class="fas fa-heart me-2" style="color: #ccc;"></i>Add to Wishlist
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Auth", "Account")" class="btn btn-lg w-100" style="background-color: #f9bf29; color: #2f2f2f; border: none;">
+                                        <i class="fas fa-heart me-2"></i>Login to Add to Wishlist
+                                    </a>
+                                }
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-lg w-100" onclick="contactSeller()" style="background-color: #6c757d; color: white; border: none;">
+                                    <i class="fas fa-phone me-2"></i>Contact Seller
                                 </button>
                             </div>
                         </div>
-                        <button class="btn btn-success btn-lg w-100" onclick="buyNow()">
-                            <i class="fas fa-bolt me-2"></i>Buy Now
-                        </button>
                     </div>
 
                     <div class="product-features">
@@ -193,7 +203,7 @@
                         <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">Specifications</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews (@Model.Reviews)</button>
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews (24)</button>
                     </li>
                 </ul>
                 <div class="tab-content mt-4" id="productTabsContent">
@@ -201,7 +211,7 @@
                         <div class="row">
                             <div class="col-md-8">
                                 <h5>Product Description</h5>
-                                <p>@Model.LongDescription</p>
+                                <p>@Model.Description</p>
                                 <p>This premium furniture piece combines modern design with exceptional comfort. Crafted from high-quality materials, it's built to last while maintaining its elegant appearance.</p>
                                 <ul>
                                     <li>Premium quality materials</li>
@@ -236,27 +246,20 @@
                                 <div class="row">
                                     <div class="col-md-3 text-center">
                                         <div class="average-rating">
-                                            <span class="rating-number h2">@Model.Rating</span>
+                                            <span class="rating-number h2">4.5</span>
                                             <div class="stars mb-2">
                                                 @for (int i = 1; i <= 5; i++)
                                                 {
-                                                    if (i <= Math.Floor(Model.Rating))
-                                                    {
-                                                        <i class="fas fa-star text-warning"></i>
-                                                    }
-                                                    else
-                                                    {
-                                                        <i class="far fa-star text-warning"></i>
-                                                    }
+                                                    <i class="fas fa-star text-warning"></i>
                                                 }
                                             </div>
-                                            <p class="text-muted">Based on @Model.Reviews reviews</p>
+                                            <p class="text-muted">Based on 24 reviews</p>
                                         </div>
                                     </div>
                                     <div class="col-md-9">
                                         <div class="rating-breakdown">
-                                            <div class="rating-bar mb-2">
-                                                <span>5 stars</span>
+                                                <div class="rating-bar mb-2">
+                                                    <span>5 stars</span>
                                                 <div class="progress mx-3" style="height: 10px;">
                                                     <div class="progress-bar bg-warning" style="width: 70%"></div>
                                                 </div>
@@ -489,39 +492,163 @@ function decreaseQuantity() {
     }
 }
 
-function addToCart() {
-    const quantity = document.getElementById('quantity').value;
-    const color = document.getElementById('color').value;
-    
-    // Show success message
-    alert(`Added ${quantity} item(s) to cart in ${color} color!`);
-    
-    // Here you would typically make an AJAX call to add the item to the cart
+function viewProductDetails() {
+    // Scroll to product details tabs
+    document.getElementById('productTabs').scrollIntoView({ 
+        behavior: 'smooth' 
+    });
 }
 
-function addToWishlist() {
-    alert('Added to wishlist!');
-    
-    // Toggle heart icon
-    const heartIcon = event.target.querySelector('i') || event.target;
-    if (heartIcon.classList.contains('far')) {
-        heartIcon.classList.remove('far');
-        heartIcon.classList.add('fas');
-        heartIcon.style.color = '#dc3545';
-    } else {
-        heartIcon.classList.remove('fas');
-        heartIcon.classList.add('far');
-        heartIcon.style.color = '';
+function contactSeller() {
+    // Redirect to contact page
+    window.location.href = '@Url.Action("Contact", "Furni")';
+}
+
+// Wishlist and Cart functionality
+$(document).ready(function() {
+    // Load wishlist status on page load
+    loadWishlistStatus();
+    updateWishlistCount();
+    updateCartCount();
+
+    // Wishlist functionality
+    $('.wishlist-btn').on('click', function(e) {
+        e.preventDefault();
+        
+        const productId = $(this).data('product-id');
+        const heartIcon = $(this).find('i');
+        const isInWishlist = heartIcon.hasClass('text-danger');
+        
+        if (isInWishlist) {
+            // Remove from wishlist
+            $.post('@Url.Action("RemoveFromWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.success) {
+                        heartIcon.removeClass('text-danger').css('color', '#ccc');
+                        $(this).html('<i class="fas fa-heart me-2" style="color: #ccc;"></i>Add to Wishlist');
+                        showToast('تم إزالة المنتج من المفضلة', 'success');
+                        updateWishlistCount();
+                    } else {
+                        showToast('حدث خطأ أثناء إزالة المنتج من المفضلة', 'error');
+                    }
+                }.bind(this))
+                .fail(function() {
+                    showToast('حدث خطأ في الاتصال', 'error');
+                });
+        } else {
+            // Add to wishlist
+            $.post('@Url.Action("AddToWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.success) {
+                        heartIcon.addClass('text-danger').css('color', '#dc3545');
+                        $(this).html('<i class="fas fa-heart me-2 text-danger"></i>Remove from Wishlist');
+                        showToast('تم إضافة المنتج إلى المفضلة', 'success');
+                        updateWishlistCount();
+                    } else {
+                        showToast('حدث خطأ أثناء إضافة المنتج إلى المفضلة', 'error');
+                    }
+                }.bind(this))
+                .fail(function() {
+                    showToast('حدث خطأ في الاتصال', 'error');
+                });
+        }
+    });
+
+    // Add to cart functionality
+    $('.add-to-cart-btn').on('click', function(e) {
+        e.preventDefault();
+        
+        const productId = $(this).data('product-id');
+        const quantity = parseInt($('#quantity').val()) || 1;
+        
+        $.post('@Url.Action("AddToCart", "Cart")', { 
+            productId: productId,
+            quantity: quantity
+        })
+        .done(function(response) {
+            if (response.success) {
+                showToast('تم إضافة المنتج إلى عربة التسوق', 'success');
+                updateCartCount();
+            } else {
+                showToast('حدث خطأ أثناء إضافة المنتج إلى عربة التسوق', 'error');
+            }
+        })
+        .fail(function() {
+            showToast('حدث خطأ في الاتصال', 'error');
+        });
+    });
+});
+
+// Function to load wishlist status for the product
+function loadWishlistStatus() {
+    const productId = $('.wishlist-btn').data('product-id');
+    if (productId) {
+        $.get('@Url.Action("IsInWishlist", "Wishlist")', { productId: productId })
+            .done(function(response) {
+                const heartIcon = $('.wishlist-btn').find('i');
+                const button = $('.wishlist-btn');
+                
+                if (response.isInWishlist) {
+                    heartIcon.addClass('text-danger').css('color', '#dc3545');
+                    button.html('<i class="fas fa-heart me-2 text-danger"></i>Remove from Wishlist');
+                } else {
+                    heartIcon.removeClass('text-danger').css('color', '#ccc');
+                    button.html('<i class="fas fa-heart me-2" style="color: #ccc;"></i>Add to Wishlist');
+                }
+            });
     }
 }
 
-function buyNow() {
-    const quantity = document.getElementById('quantity').value;
-    const color = document.getElementById('color').value;
+// Function to update wishlist count in navigation
+function updateWishlistCount() {
+    $.get('@Url.Action("GetWishlistCount", "Wishlist")')
+        .done(function(response) {
+            $('#wishlist-count').text(response.count);
+            if (response.count > 0) {
+                $('#wishlist-count').show();
+            } else {
+                $('#wishlist-count').hide();
+            }
+        });
+}
+
+// Function to update cart count in navigation
+function updateCartCount() {
+    $.get('@Url.Action("GetCartCount", "Cart")')
+        .done(function(response) {
+            $('#cart-count').text(response.count);
+            if (response.count > 0) {
+                $('#cart-count').show();
+            } else {
+                $('#cart-count').hide();
+            }
+        });
+}
+
+// Function to show toast notifications
+function showToast(message, type) {
+    const toast = $('<div class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">')
+        .addClass(type === 'success' ? 'bg-success' : 'bg-danger')
+        .css({
+            'position': 'fixed',
+            'top': '20px',
+            'right': '20px',
+            'z-index': '9999'
+        })
+        .html(`
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `);
     
-    alert(`Proceeding to checkout with ${quantity} item(s) in ${color} color!`);
+    $('body').append(toast);
     
-    // Redirect to checkout
-    window.location.href = '@Url.Action("Checkout", "Furni")';
+    const bsToast = new bootstrap.Toast(toast[0]);
+    bsToast.show();
+    
+    toast.on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
 }
 </script>

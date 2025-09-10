@@ -1,3 +1,5 @@
+@using BLL.Models.ProductDtos
+@model IEnumerable<ProductDto>
 @{
     ViewData["Title"] = "Shop - Furni";
     Layout = "~/Views/Shared/_FurniLayout.cshtml";
@@ -22,109 +24,194 @@
 <div class="untree_co-section product-section before-footer-section">
     <div class="container">
         <div class="row">
-            <!-- Start Column 1 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5">
-                <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 1 })">
-                    <img src="~/furni/images/product-1.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Nordic Chair</h3>
-                    <strong class="product-price">$50.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 1 -->
-
-            <!-- Start Column 2 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5">
-                <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 2 })">
-                    <img src="~/furni/images/product-2.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Kruzo Aero Chair</h3>
-                    <strong class="product-price">$78.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 2 -->
-
-            <!-- Start Column 3 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5">
-                <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 3 })">
-                    <img src="~/furni/images/product-3.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Ergonomic Chair</h3>
-                    <strong class="product-price">$43.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 3 -->
-
-            <!-- Start Column 4 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5">
-                <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 1 })">
-                    <img src="~/furni/images/product-1.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Nordic Chair</h3>
-                    <strong class="product-price">$50.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 4 -->
-
-            <!-- Start Column 5 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5">
-                <a class="product-item" href="#">
-                    <img src="~/furni/images/product-3.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Nordic Chair</h3>
-                    <strong class="product-price">$50.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 5 -->
-
-            <!-- Start Column 6 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5">
-                <a class="product-item" href="#">
-                    <img src="~/furni/images/product-1.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Nordic Chair</h3>
-                    <strong class="product-price">$50.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 6 -->
-
-            <!-- Start Column 7 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5">
-                <a class="product-item" href="#">
-                    <img src="~/furni/images/product-2.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Kruzo Aero Chair</h3>
-                    <strong class="product-price">$78.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 7 -->
-
-            <!-- Start Column 8 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5">
-                <a class="product-item" href="#">
-                    <img src="~/furni/images/product-3.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Ergonomic Chair</h3>
-                    <strong class="product-price">$43.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 8 -->
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var product in Model)
+                {
+                    <div class="col-12 col-md-4 col-lg-3 mb-5">
+                        <div class="product-item-wrapper position-relative">
+                            <!-- Wishlist Heart Icon -->
+                            <button class="btn btn-link position-absolute wishlist-btn" 
+                                    data-product-id="@product.Id" 
+                                    style="top: 10px; right: 10px; z-index: 10; background: rgba(255,255,255,0.9); border-radius: 50%; width: 40px; height: 40px; padding: 0;">
+                                <i class="fas fa-heart text-muted wishlist-icon" style="font-size: 1.2rem;"></i>
+                            </button>
+                            
+                            <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">
+                                <img src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : "~/furni/images/product-1.png")" class="img-fluid product-thumbnail">
+                                <h3 class="product-title">@product.Name</h3>
+                                <strong class="product-price">$@product.Price.ToString("F2")</strong>
+                                <span class="icon-cross">
+                                    <img src="~/furni/images/cross.svg" class="img-fluid">
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <h4>No products available</h4>
+                        <p>There are currently no products in the furniture store. Please check back later!</p>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+<style>
+.product-item-wrapper:hover .wishlist-btn {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.wishlist-btn:hover {
+    background: rgba(255,255,255,1) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.wishlist-icon.text-danger {
+    color: #dc3545 !important;
+}
+
+.wishlist-icon.text-muted {
+    color: #6c757d !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize wishlist states
+    loadWishlistStates();
+    
+    // Wishlist button click handlers
+    document.querySelectorAll('.wishlist-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = this.dataset.productId;
+            const icon = this.querySelector('.wishlist-icon');
+            const isInWishlist = icon.classList.contains('text-danger');
+            
+            if (isInWishlist) {
+                removeFromWishlist(productId, icon);
+            } else {
+                addToWishlist(productId, icon);
+            }
+        });
+    });
+});
+
+function loadWishlistStates() {
+    document.querySelectorAll('.wishlist-btn').forEach(button => {
+        const productId = button.dataset.productId;
+        
+        fetch(`/Wishlist/IsInWishlist?productId=${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                const icon = button.querySelector('.wishlist-icon');
+                if (data.isInWishlist) {
+                    icon.classList.remove('text-muted');
+                    icon.classList.add('text-danger');
+                }
+            })
+            .catch(error => console.error('Error checking wishlist status:', error));
+    });
+}
+
+function addToWishlist(productId, icon) {
+    fetch('/Wishlist/Add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        },
+        body: JSON.stringify({ productId: parseInt(productId) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            icon.classList.remove('text-muted');
+            icon.classList.add('text-danger');
+            updateWishlistCount();
+            showToast('Product added to wishlist!', 'success');
+        } else {
+            if (data.message && data.message.includes('log in')) {
+                // Redirect to login page
+                window.location.href = '/Account/Auth';
+            } else {
+                showToast(data.message || 'Failed to add to wishlist', 'error');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error adding to wishlist:', error);
+        showToast('An error occurred', 'error');
+    });
+}
+
+function removeFromWishlist(productId, icon) {
+    fetch('/Wishlist/Remove', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+        },
+        body: JSON.stringify({ productId: parseInt(productId) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            icon.classList.remove('text-danger');
+            icon.classList.add('text-muted');
+            updateWishlistCount();
+            showToast('Product removed from wishlist!', 'success');
+        } else {
+            showToast(data.message || 'Failed to remove from wishlist', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error removing from wishlist:', error);
+        showToast('An error occurred', 'error');
+    });
+}
+
+function updateWishlistCount() {
+    fetch('/Wishlist/GetCount')
+        .then(response => response.json())
+        .then(data => {
+            const wishlistBadge = document.querySelector('.wishlist-count');
+            if (wishlistBadge) {
+                wishlistBadge.textContent = data.count;
+            }
+        })
+        .catch(error => console.error('Error updating wishlist count:', error));
+}
+
+function showToast(message, type) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 3000);
+}
+</script>

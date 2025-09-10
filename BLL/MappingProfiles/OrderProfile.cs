@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using BLL.Models.Order;
+using AutoMapper;
+using BLL.Models.OrderDtos;
 using DAL.Models;
 using System;
 using System.Collections.Generic;
@@ -20,6 +20,16 @@ namespace BLL.MappingProfiles
                 .ReverseMap()
                 .ForMember(dest => dest.User, opt => opt.Ignore())
                 .ForMember(dest => dest.OrderItems, opt => opt.Ignore());
+            
+            CreateMap<OrderCreateDto, Order>()
+                .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.Items))
+                .ForMember(dest => dest.User, opt => opt.Ignore());
+            
+            CreateMap<OrderItemCreateDto, OrderItem>();
+            CreateMap<OrderItem, OrderItemDto>()
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.ProductBrand, opt => opt.MapFrom(src => ""))
+                .ForMember(dest => dest.ProductImageUrl, opt => opt.MapFrom(src => src.Product.ImageUrl));
         }
     }
 }

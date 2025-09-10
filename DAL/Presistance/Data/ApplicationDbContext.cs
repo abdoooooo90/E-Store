@@ -1,4 +1,4 @@
-﻿using DAL.Models;
+using DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -23,11 +23,22 @@ namespace DAL.Presistance.Data
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<Wishlist> Wishlists { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+            
+            // Configure decimal precision for Product.Price
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);
+            
+            // Configure decimal precision for Payment.Amount
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
         }
     
     }

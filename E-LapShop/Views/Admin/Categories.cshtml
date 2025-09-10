@@ -1,0 +1,366 @@
+@using BLL.Models.CategoryDtos
+@model IEnumerable<CategoryDto>
+@{
+    ViewData["Title"] = "إدارة الفئات";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tags me-2"></i>إدارة الفئات</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+        <i class="fas fa-plus me-2"></i>إضافة فئة جديدة
+    </button>
+</div>
+
+<!-- البحث والفلاتر -->
+<div class="page-header mb-4">
+    <div class="row">
+        <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="البحث في الفئات..." id="searchInput">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="statusFilter">
+                <option value="">جميع الحالات</option>
+                <option value="active">نشط</option>
+                <option value="inactive">غير نشط</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                <i class="fas fa-times me-2"></i>مسح الفلاتر
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- جدول الفئات -->
+<div class="page-header">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>الصورة</th>
+                    <th>اسم الفئة</th>
+                    <th>الوصف</th>
+                    <th>عدد المنتجات</th>
+                    <th>الحالة</th>
+                    <th>تاريخ الإنشاء</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var category in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border-radius: 5px;">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                            </td>
+                            <td>
+                                <strong>@category.Name</strong>
+                            </td>
+                            <td>
+                                <small class="text-muted">وصف الفئة</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">0 منتج</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success">نشط</span>
+                            </td>
+                            <td>
+                                <small class="text-muted">حديث</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-info" 
+                                            onclick="viewCategoryProducts(@category.Id)" title="عرض المنتجات">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning" 
+                                            onclick="editCategory(@category.Id, '@category.Name', 'وصف', true)" title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="deleteCategory(@category.Id, '@category.Name', 0)" title="حذف">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">لا توجد فئات حالياً</p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                <i class="fas fa-plus me-2"></i>إضافة أول فئة
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- إحصائيات الفئات -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="stats-card text-center">
+            <h5 class="text-primary">@(Model?.Count() ?? 0)</h5>
+            <small class="text-muted">إجمالي الفئات</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card text-center">
+            <h5 class="text-success">@(Model?.Count() ?? 0)</h5>
+            <small class="text-muted">فئات نشطة</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card text-center">
+            <h5 class="text-warning">0</h5>
+            <small class="text-muted">فئات غير نشطة</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card text-center">
+            <h5 class="text-info">0</h5>
+            <small class="text-muted">إجمالي المنتجات</small>
+        </div>
+    </div>
+</div>
+
+<!-- Modal إضافة فئة جديدة -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إضافة فئة جديدة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addCategoryForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">اسم الفئة</label>
+                        <input type="text" class="form-control" id="categoryName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryDescription" class="form-label">الوصف</label>
+                        <textarea class="form-control" id="categoryDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoryImage" class="form-label">صورة الفئة</label>
+                        <input type="file" class="form-control" id="categoryImage" accept="image/*">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="categoryActive" checked>
+                        <label class="form-check-label" for="categoryActive">
+                            فئة نشطة
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">إضافة الفئة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal تعديل فئة -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تعديل الفئة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editCategoryForm">
+                <input type="hidden" id="editCategoryId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editCategoryName" class="form-label">اسم الفئة</label>
+                        <input type="text" class="form-control" id="editCategoryName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCategoryDescription" class="form-label">الوصف</label>
+                        <textarea class="form-control" id="editCategoryDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCategoryImage" class="form-label">صورة الفئة</label>
+                        <input type="file" class="form-control" id="editCategoryImage" accept="image/*">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="editCategoryActive">
+                        <label class="form-check-label" for="editCategoryActive">
+                            فئة نشطة
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning">حفظ التعديلات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // البحث والفلترة
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        filterTable();
+    });
+
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        filterTable();
+    });
+
+    function filterTable() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+        
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            if (row.cells.length < 7) return;
+            
+            const categoryName = row.cells[1]?.textContent.toLowerCase() || '';
+            const description = row.cells[2]?.textContent.toLowerCase() || '';
+            const status = row.cells[4]?.textContent.toLowerCase() || '';
+            
+            const matchesSearch = categoryName.includes(searchTerm) || description.includes(searchTerm);
+            const matchesStatus = !statusFilter || 
+                (statusFilter === 'active' && status.includes('نشط')) ||
+                (statusFilter === 'inactive' && status.includes('غير نشط'));
+            
+            if (matchesSearch && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        filterTable();
+    }
+
+    // إضافة فئة جديدة
+    document.getElementById('addCategoryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('name', document.getElementById('categoryName').value);
+        formData.append('description', document.getElementById('categoryDescription').value);
+        formData.append('isActive', document.getElementById('categoryActive').checked);
+        
+        const imageFile = document.getElementById('categoryImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        
+        fetch('/Admin/CreateCategory', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء إضافة الفئة');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء إضافة الفئة');
+        });
+    });
+
+    // تعديل فئة
+    function editCategory(id, name, description, isActive) {
+        document.getElementById('editCategoryId').value = id;
+        document.getElementById('editCategoryName').value = name;
+        document.getElementById('editCategoryDescription').value = description;
+        document.getElementById('editCategoryActive').checked = isActive;
+        
+        new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+    }
+
+    document.getElementById('editCategoryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('id', document.getElementById('editCategoryId').value);
+        formData.append('name', document.getElementById('editCategoryName').value);
+        formData.append('description', document.getElementById('editCategoryDescription').value);
+        formData.append('isActive', document.getElementById('editCategoryActive').checked);
+        
+        const imageFile = document.getElementById('editCategoryImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        
+        fetch('/Admin/UpdateCategory', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء تحديث الفئة');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحديث الفئة');
+        });
+    });
+
+    // حذف فئة
+    function deleteCategory(categoryId, categoryName, productCount) {
+        if (productCount > 0) {
+            alert(`لا يمكن حذف الفئة "${categoryName}" لأنها تحتوي على ${productCount} منتج. يرجى نقل المنتجات أولاً.`);
+            return;
+        }
+        
+        if (confirm(`هل أنت متأكد من حذف الفئة "${categoryName}"؟`)) {
+            fetch(`/Admin/DeleteCategory/${categoryId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('حدث خطأ أثناء حذف الفئة');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء حذف الفئة');
+            });
+        }
+    }
+
+    // عرض منتجات الفئة
+    function viewCategoryProducts(categoryId) {
+        window.location.href = `/Admin/Products?categoryId=${categoryId}`;
+    }
+</script>
+}

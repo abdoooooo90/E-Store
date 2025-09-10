@@ -1,9 +1,10 @@
-﻿using DAL.Presistance.Repositories.CartItems;
+using DAL.Presistance.Repositories.CartItems;
 using DAL.Presistance.Repositories.Categories;
 using DAL.Presistance.Repositories.Orders;
 using DAL.Presistance.Repositories.Payments;
 using DAL.Presistance.Repositories.ProductImages;
 using DAL.Presistance.Repositories.Products;
+using DAL.Presistance.Repositories.Wishlists;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace DAL.Presistance.UnitOfWork
         ICartItemRepository CartItems { get; }
         IProductImagesRepository ProductImages { get; }
         IPaymentRepository Payments { get; }
+        IWishlistRepository Wishlists { get; }
         Task<int> CompleteAsync();
     }
 }

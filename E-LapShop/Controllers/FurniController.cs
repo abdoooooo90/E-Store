@@ -1,24 +1,31 @@
+using BLL.Services.ProductServices;
+using E_LapShop.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace E_LapShop.Controllers
 {
     public class FurniController : Controller
     {
         private readonly ILogger<FurniController> _logger;
+        private readonly IProductService _productService;
 
-        public FurniController(ILogger<FurniController> logger)
+        public FurniController(ILogger<FurniController> logger, IProductService productService)
         {
             _logger = logger;
+            _productService = productService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var products = await _productService.GetAllAsync();
+            return View(products);
         }
 
-        public IActionResult Shop()
+        public async Task<IActionResult> Shop()
         {
-            return View();
+            var products = await _productService.GetAllAsync();
+            return View(products);
         }
 
         public IActionResult About()
@@ -56,24 +63,20 @@ namespace E_LapShop.Controllers
             return View();
         }
 
-        public IActionResult ProductDetails(int id)
+        public async Task<IActionResult> ProductDetails(int id)
         {
-            // For demo purposes, creating a sample product based on ID
-            var product = new
+            var product = await _productService.GetByIdAsync(id);
+            if (product == null)
             {
-                Id = id,
-                Name = id == 1 ? "Nordic Chair" : id == 2 ? "Kruzo Aero Chair" : "Ergonomic Chair",
-                Price = id == 1 ? 50.00m : id == 2 ? 78.00m : 43.00m,
-                Description = "Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate velit imperdiet dolor tempor tristique. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.",
-                LongDescription = "Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean. A small river named Duden flows by their place and supplies it with the necessary regelialia. It is a paradisematic country, in which roasted parts of sentences fly into your mouth.",
-                ImageUrl = $"~/furni/images/product-{id}.png",
-                Category = "Chairs",
-                InStock = true,
-                Rating = 4.5,
-                Reviews = 24
-            };
-
+                return NotFound();
+            }
             return View(product);
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

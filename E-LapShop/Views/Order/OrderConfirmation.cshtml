@@ -1,0 +1,196 @@
+@model BLL.Models.OrderDtos.OrderDetailsDto
+
+@{
+    ViewBag.Title = "Order Confirmation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Message -->
+            <div class="text-center mb-5">
+                <div class="card border-success">
+                    <div class="card-body p-5">
+                        <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
+                        <h2 class="text-success mb-3">Order Placed Successfully!</h2>
+                        <p class="lead">Thank you for your purchase. Your order has been confirmed and is being processed.</p>
+                        <div class="alert alert-success">
+                            <strong>Order #@Model.Id</strong> - Placed on @Model.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-receipt"></i> Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Order Number:</strong> #@Model.Id
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Order Date:</strong> @Model.CreatedAt.ToString("MMMM dd, yyyy")
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Status:</strong> 
+                            <span class="badge bg-warning">@Model.Status</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Total Amount:</strong> 
+                            <span class="text-success fw-bold">$@Model.TotalAmount.ToString("F2")</span>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <div class="row">
+                            <div class="col-12">
+                                <strong>Order Notes:</strong>
+                                <p class="text-muted">@Model.Notes</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shipping-fast"></i> Shipping Address</h5>
+                </div>
+                <div class="card-body">
+                    <address>
+                        <strong>@Model.ShippingAddress</strong><br>
+                        <!-- Note: You may need to parse the shipping address or store it in separate fields -->
+                    </address>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-box"></i> Order Items</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@(!string.IsNullOrEmpty(item.ProductImageUrl) ? item.ProductImageUrl : "https://dummyimage.com/50x50/dee2e6/6c757d.jpg")" 
+                                                     class="me-3 rounded" alt="@item.ProductName" style="width: 50px; height: 50px; object-fit: cover;">
+                                                <div>
+                                                    <h6 class="mb-0">@item.ProductName</h6>
+                                                    <small class="text-muted">@item.ProductBrand</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">$@item.Price.ToString("F2")</td>
+                                        <td class="align-middle">@item.Quantity</td>
+                                        <td class="align-middle fw-bold">$@((item.Price * item.Quantity).ToString("F2"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calculator"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>$@((Model.TotalAmount / 1.1m).ToString("F2"))</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping:</span>
+                                <span class="text-success">Free</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (10%):</span>
+                                <span>$@((Model.TotalAmount - (Model.TotalAmount / 1.1m)).ToString("F2"))</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <strong>Total:</strong>
+                                <strong class="text-success">$@Model.TotalAmount.ToString("F2")</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> What's Next?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-box-open fa-2x text-primary mb-2"></i>
+                            <h6>Processing</h6>
+                            <small class="text-muted">We're preparing your order</small>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-truck fa-2x text-info mb-2"></i>
+                            <h6>Shipping</h6>
+                            <small class="text-muted">Your order will be shipped within 2-3 business days</small>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <i class="fas fa-home fa-2x text-success mb-2"></i>
+                            <h6>Delivery</h6>
+                            <small class="text-muted">Estimated delivery: 5-7 business days</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a asp-controller="Order" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary me-md-2">
+                        <i class="fas fa-eye"></i> View Order Details
+                    </a>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary me-md-2">
+                        <i class="fas fa-shopping-bag"></i> Continue Shopping
+                    </a>
+                    <button type="button" class="btn btn-outline-info" onclick="window.print()">
+                        <i class="fas fa-print"></i> Print Receipt
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="text-center mt-4">
+                <p class="text-muted">
+                    Questions about your order? Contact us at 
+                    <a href="mailto:support@example.com">support@example.com</a> or 
+                    <a href="tel:+1234567890">(123) 456-7890</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

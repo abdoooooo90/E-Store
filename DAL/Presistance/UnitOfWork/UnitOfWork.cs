@@ -1,10 +1,11 @@
-﻿using DAL.Presistance.Data;
+using DAL.Presistance.Data;
 using DAL.Presistance.Repositories.CartItems;
 using DAL.Presistance.Repositories.Categories;
 using DAL.Presistance.Repositories.Orders;
 using DAL.Presistance.Repositories.Payments;
 using DAL.Presistance.Repositories.ProductImages;
 using DAL.Presistance.Repositories.Products;
+using DAL.Presistance.Repositories.Wishlists;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,7 @@ namespace DAL.Presistance.UnitOfWork
         public ICartItemRepository CartItems { get; }
         public IProductImagesRepository ProductImages { get; }
         public IPaymentRepository Payments { get; }
+        public IWishlistRepository Wishlists { get; }
 
         public UnitOfWork(
             ApplicationDbContext context,
@@ -31,7 +33,8 @@ namespace DAL.Presistance.UnitOfWork
             IOrderRepository orderRepo,
             ICartItemRepository cartItemRepo,
             IProductImagesRepository productImageRepo,
-            IPaymentRepository payments)
+            IPaymentRepository payments,
+            IWishlistRepository wishlists)
         {
             _context = context;
             Products = productRepo;
@@ -40,11 +43,26 @@ namespace DAL.Presistance.UnitOfWork
             CartItems = cartItemRepo;
             ProductImages = productImageRepo;
             Payments = payments;
+            Wishlists = wishlists;
         }
 
         public async Task<int> CompleteAsync()
         {
-            return await _context.SaveChangesAsync();
+            try
+            {
+                return await _context.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+            {
+                // في حالة Optimistic Concurrency Exception
+                // نعيد 0 للإشارة إلى عدم تأثر أي صفوف
+                return 0;
+            }
+            catch (Exception)
+            {
+                // في حالة أي خطأ آخر
+                return 0;
+            }
         }
 
         public async ValueTask DisposeAsync()

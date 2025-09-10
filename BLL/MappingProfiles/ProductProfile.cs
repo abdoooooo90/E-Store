@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BLL.Models.ProductDtos;
 using DAL.Models;
 using System;
@@ -15,12 +15,20 @@ namespace BLL.MappingProfiles
         {
             CreateMap<Product, ProductDto>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.Stock))
                 .ReverseMap()
-                .ForMember(dest => dest.Category, opt => opt.Ignore());
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.StockQuantity));
 
-            CreateMap<Product, ProductCreateDto>().ReverseMap();
+            CreateMap<Product, ProductCreateDto>()
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.Stock))
+                .ReverseMap()
+                .ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.StockQuantity));
 
-            CreateMap<Product, ProductUpdateDto>().ReverseMap();
+            CreateMap<Product, ProductUpdateDto>()
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.Stock))
+                .ReverseMap()
+                .ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.StockQuantity));
 
             CreateMap<Product, ProductDetailsDto>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))

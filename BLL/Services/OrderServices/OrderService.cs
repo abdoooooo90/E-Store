@@ -1,5 +1,5 @@
-﻿using AutoMapper;
-using BLL.Models.Order;
+using AutoMapper;
+using BLL.Models.OrderDtos;
 using DAL.Models;
 using DAL.Presistance.UnitOfWork;
 using System;

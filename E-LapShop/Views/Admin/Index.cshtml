@@ -1,0 +1,590 @@
+@{
+    ViewData["Title"] = "لوحة التحكم - إدارة متجر الأثاث";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+
+<!-- رسالة الترحيب للمدير -->
+@if (TempData["AdminWelcomeMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" id="adminWelcomeAlert">
+        <i class="fas fa-crown me-2"></i>
+        <strong>@TempData["AdminWelcomeMessage"]</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- إحصائيات سريعة -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="stats-icon bg-success me-3">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                        إجمالي المبيعات
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalRevenue.ToString("N0") ج.م</div>
+                    <small class="text-success">
+                        <i class="fas fa-arrow-up"></i> @ViewBag.GrowthPercentage% من الشهر الماضي
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="stats-icon bg-primary me-3">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        إجمالي الطلبات
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalOrders</div>
+                    <small class="text-muted">
+                        @ViewBag.CompletedOrders مكتمل | @ViewBag.PendingOrders في الانتظار
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="stats-icon bg-info me-3">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                        متوسط قيمة الطلب
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.AverageOrderValue.ToString("N0") ج.م</div>
+                    <small class="text-muted">
+                        @ViewBag.ThisMonthOrders طلب هذا الشهر
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card">
+            <div class="d-flex align-items-center">
+                <div class="stats-icon bg-warning me-3">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                        المنتجات
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalProducts</div>
+                    <small class="text-warning">
+                        @ViewBag.LowStockProducts مخزون منخفض | @ViewBag.OutOfStockProducts نفد
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- الإجراءات السريعة -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header">
+            <h4><i class="fas fa-bolt me-2"></i>الإجراءات السريعة</h4>
+            <div class="row mt-3">
+                <div class="col-md-3 mb-3">
+                    <a href="@Url.Action("Products", "Admin")" class="btn btn-primary w-100 py-3">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        إضافة منتج جديد
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="@Url.Action("Orders", "Admin")" class="btn btn-success w-100 py-3">
+                        <i class="fas fa-eye me-2"></i>
+                        عرض الطلبات
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="@Url.Action("Categories", "Admin")" class="btn btn-info w-100 py-3">
+                        <i class="fas fa-tags me-2"></i>
+                        إدارة الفئات
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="@Url.Action("Sales", "Admin")" class="btn btn-warning w-100 py-3">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        تقارير المبيعات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- الرسوم البيانية -->
+<div class="row mb-4">
+    <div class="col-xl-8 col-lg-7 mb-3">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="fas fa-chart-line me-2"></i>إحصائيات المبيعات</h4>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" id="salesPeriodSelect" onchange="changeSalesPeriod()" style="width: auto;">
+                        <option value="6months">آخر 6 أشهر</option>
+                        <option value="12months">آخر 12 شهر</option>
+                        <option value="3months">آخر 3 أشهر</option>
+                        <option value="thisyear">هذا العام</option>
+                    </select>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshSalesChart()" id="refreshSalesBtn">
+                            <i class="fas fa-sync-alt" id="refreshSalesIcon"></i> تحديث
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportSalesData()" id="exportSalesBtn">
+                            <i class="fas fa-download" id="exportSalesIcon"></i> تصدير
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="salesChartContainer" class="chart-container">
+                <div class="custom-chart">
+                    <div class="chart-header mb-3">
+                        <h6>مبيعات آخر 6 أشهر</h6>
+                    </div>
+                    <div class="sales-bars">
+                        <div class="bar-item">
+                            <div class="bar-label">يناير</div>
+                            <div class="bar-container">
+                                <div class="bar revenue-bar" style="height: 60%;" data-value="45000"></div>
+                            </div>
+                            <div class="bar-value">45,000 ج.م</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">فبراير</div>
+                            <div class="bar-container">
+                                <div class="bar revenue-bar" style="height: 80%;" data-value="60000"></div>
+                            </div>
+                            <div class="bar-value">60,000 ج.م</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">مارس</div>
+                            <div class="bar-container">
+                                <div class="bar revenue-bar" style="height: 70%;" data-value="52500"></div>
+                            </div>
+                            <div class="bar-value">52,500 ج.م</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">أبريل</div>
+                            <div class="bar-container">
+                                <div class="bar revenue-bar" style="height: 90%;" data-value="67500"></div>
+                            </div>
+                            <div class="bar-value">67,500 ج.م</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">مايو</div>
+                            <div class="bar-container">
+                                <div class="bar revenue-bar" style="height: 100%;" data-value="75000"></div>
+                            </div>
+                            <div class="bar-value">75,000 ج.م</div>
+                        </div>
+                        <div class="bar-item">
+                            <div class="bar-label">يونيو</div>
+                            <div class="bar-container">
+                                <div class="bar revenue-bar" style="height: 85%;" data-value="63750"></div>
+                            </div>
+                            <div class="bar-value">63,750 ج.م</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4 col-lg-5 mb-3">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="fas fa-chart-pie me-2"></i>توزيع المنتجات</h4>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshCategoryChart()" id="refreshCategoryBtn">
+                    <i class="fas fa-sync-alt" id="refreshCategoryIcon"></i> تحديث
+                </button>
+            </div>
+            <div id="productsChartContainer" class="chart-container">
+                <div class="custom-chart">
+                    <div class="chart-header mb-3">
+                        <h6>توزيع المنتجات حسب الفئة</h6>
+                    </div>
+                    <div class="category-stats">
+                        <div class="category-item">
+                            <div class="category-info">
+                                <span class="category-color" style="background-color: #FF6384;"></span>
+                                <span class="category-name">أثاث غرف النوم</span>
+                            </div>
+                            <div class="category-progress">
+                                <div class="progress-bar" style="width: 45%; background-color: #FF6384;"></div>
+                            </div>
+                            <span class="category-value">45%</span>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-info">
+                                <span class="category-color" style="background-color: #36A2EB;"></span>
+                                <span class="category-name">أثاث غرف المعيشة</span>
+                            </div>
+                            <div class="category-progress">
+                                <div class="progress-bar" style="width: 30%; background-color: #36A2EB;"></div>
+                            </div>
+                            <span class="category-value">30%</span>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-info">
+                                <span class="category-color" style="background-color: #FFCE56;"></span>
+                                <span class="category-name">أثاث المكاتب</span>
+                            </div>
+                            <div class="category-progress">
+                                <div class="progress-bar" style="width: 15%; background-color: #FFCE56;"></div>
+                            </div>
+                            <span class="category-value">15%</span>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-info">
+                                <span class="category-color" style="background-color: #4BC0C0;"></span>
+                                <span class="category-name">أثاث الحدائق</span>
+                            </div>
+                            <div class="category-progress">
+                                <div class="progress-bar" style="width: 10%; background-color: #4BC0C0;"></div>
+                            </div>
+                            <span class="category-value">10%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- رسم بياني إضافي للنمو -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="fas fa-trending-up me-2"></i>نمو المبيعات الشهري</h4>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="refreshGrowthChart()" id="refreshGrowthBtn">
+                        <i class="fas fa-sync-alt" id="refreshGrowthIcon"></i> تحديث
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="toggleGrowthView()" id="toggleGrowthBtn">
+                        <i class="fas fa-eye" id="toggleGrowthIcon"></i> تغيير العرض
+                    </button>
+                </div>
+            </div>
+            <div id="growthChartContainer" class="chart-container">
+                <div class="custom-chart">
+                    <div class="chart-header mb-3">
+                        <h6>نمو المبيعات الشهري</h6>
+                    </div>
+                    <div class="growth-metrics">
+                        <div class="metric-card positive">
+                            <div class="metric-icon">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h4>+15.2%</h4>
+                                <p>نمو هذا الشهر</p>
+                            </div>
+                        </div>
+                        <div class="metric-card positive">
+                            <div class="metric-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h4>+8.7%</h4>
+                                <p>متوسط النمو</p>
+                            </div>
+                        </div>
+                        <div class="metric-card neutral">
+                            <div class="metric-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h4>6</h4>
+                                <p>أشهر متتالية نمو</p>
+                            </div>
+                        </div>
+                        <div class="metric-card positive">
+                            <div class="metric-icon">
+                                <i class="fas fa-target"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h4>92%</h4>
+                                <p>تحقيق الهدف</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // إخفاء رسالة الترحيب تلقائياً بعد 5 ثوانٍ
+    document.addEventListener('DOMContentLoaded', function() {
+        const welcomeAlert = document.getElementById('adminWelcomeAlert');
+        if (welcomeAlert) {
+            setTimeout(function() {
+                welcomeAlert.style.transition = 'opacity 0.5s';
+                welcomeAlert.style.opacity = '0';
+                setTimeout(function() {
+                    welcomeAlert.remove();
+                }, 500);
+            }, 5000);
+        }
+        
+        // إضافة تأثيرات تفاعلية للمخططات الجديدة
+        addChartInteractions();
+    });
+
+    // إضافة تأثيرات تفاعلية
+    function addChartInteractions() {
+        // تأثيرات الأعمدة
+        const bars = document.querySelectorAll('.revenue-bar');
+        bars.forEach(bar => {
+            bar.addEventListener('mouseenter', function() {
+                this.style.transform = 'scaleY(1.05)';
+                this.style.boxShadow = '0 4px 8px rgba(40, 167, 69, 0.3)';
+            });
+            
+            bar.addEventListener('mouseleave', function() {
+                this.style.transform = 'scaleY(1)';
+                this.style.boxShadow = 'none';
+            });
+        });
+
+        // تأثيرات بطاقات المقاييس
+        const metricCards = document.querySelectorAll('.metric-card');
+        metricCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+                this.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            });
+        });
+    }
+
+    // دوال التحديث والتفاعل
+    async function refreshSalesChart() {
+        const btn = document.getElementById('refreshSalesBtn');
+        const icon = document.getElementById('refreshSalesIcon');
+        
+        try {
+            // إظهار مؤشر التحميل
+            btn.disabled = true;
+            icon.className = 'fas fa-spinner fa-spin';
+            
+            const period = document.getElementById('salesPeriodSelect').value;
+            const response = await fetch(`/Admin/GetSalesData?period=${period}`);
+            
+            if (!response.ok) throw new Error('فشل في تحميل البيانات');
+            
+            const newData = await response.json();
+            
+            salesChart.data.labels = newData.map(item => item.month);
+            salesChart.data.datasets[0].data = newData.map(item => item.revenue);
+            salesChart.data.datasets[1].data = newData.map(item => item.orderCount);
+            salesChart.update('active');
+            
+            showToast('تم تحديث بيانات المبيعات بنجاح', 'success');
+        } catch (error) {
+            showToast('حدث خطأ أثناء تحديث البيانات: ' + error.message, 'error');
+        } finally {
+            // إعادة تعيين الزر
+            btn.disabled = false;
+            icon.className = 'fas fa-sync-alt';
+        }
+    }
+
+    async function changeSalesPeriod() {
+        const period = document.getElementById('salesPeriodSelect').value;
+        try {
+            const response = await fetch(`/Admin/GetSalesData?period=${period}`);
+            const newData = await response.json();
+            
+            // تحديث البيانات مع تأثير انتقالي
+            salesChart.data.labels = newData.map(item => item.month);
+            salesChart.data.datasets[0].data = newData.map(item => item.revenue);
+            salesChart.data.datasets[1].data = newData.map(item => item.orderCount);
+            
+            // تحديث العنوان حسب الفترة المختارة
+            const periodText = {
+                '3months': 'آخر 3 أشهر',
+                '6months': 'آخر 6 أشهر', 
+                '12months': 'آخر 12 شهر',
+                'thisyear': 'هذا العام'
+            };
+            
+            salesChart.options.plugins.title = {
+                display: true,
+                text: `مبيعات ${periodText[period]}`,
+                font: { size: 14 },
+                padding: 10
+            };
+            
+            salesChart.update('active');
+            
+        } catch (error) {
+            showToast('حدث خطأ أثناء تغيير الفترة الزمنية', 'error');
+        }
+    }
+
+    async function refreshCategoryChart() {
+        const btn = document.getElementById('refreshCategoryBtn');
+        const icon = document.getElementById('refreshCategoryIcon');
+        
+        try {
+            btn.disabled = true;
+            icon.className = 'fas fa-spinner fa-spin';
+            
+            const response = await fetch('/Admin/GetCategoryData');
+            if (!response.ok) throw new Error('فشل في تحميل البيانات');
+            
+            const newData = await response.json();
+            
+            productsChart.data.labels = newData.map(item => item.name);
+            productsChart.data.datasets[0].data = newData.map(item => item.productCount);
+            productsChart.update('active');
+            
+            showToast('تم تحديث بيانات الفئات بنجاح', 'success');
+        } catch (error) {
+            showToast('حدث خطأ أثناء تحديث البيانات: ' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            icon.className = 'fas fa-sync-alt';
+        }
+    }
+
+    async function refreshGrowthChart() {
+        const btn = document.getElementById('refreshGrowthBtn');
+        const icon = document.getElementById('refreshGrowthIcon');
+        
+        try {
+            btn.disabled = true;
+            icon.className = 'fas fa-spinner fa-spin';
+            
+            const response = await fetch('/Admin/GetGrowthData');
+            if (!response.ok) throw new Error('فشل في تحميل البيانات');
+            
+            const newData = await response.json();
+            
+            growthChart.data.labels = newData.map(item => item.month);
+            growthChart.data.datasets[0].data = newData.map(item => item.growth);
+            growthChart.data.datasets[0].backgroundColor = newData.map(item => 
+                item.growth >= 0 ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)'
+            );
+            growthChart.update('active');
+            
+            showToast('تم تحديث بيانات النمو بنجاح', 'success');
+        } catch (error) {
+            showToast('حدث خطأ أثناء تحديث البيانات: ' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            icon.className = 'fas fa-sync-alt';
+        }
+    }
+
+    function toggleGrowthView() {
+        const btn = document.getElementById('toggleGrowthBtn');
+        const icon = document.getElementById('toggleGrowthIcon');
+        
+        try {
+            btn.disabled = true;
+            icon.className = 'fas fa-spinner fa-spin';
+            
+            if (growthChart.config.type === 'bar') {
+                growthChart.config.type = 'line';
+                growthChart.data.datasets[0].backgroundColor = 'rgba(54, 162, 235, 0.1)';
+                growthChart.data.datasets[0].borderColor = 'rgb(54, 162, 235)';
+                growthChart.data.datasets[0].fill = true;
+                showToast('تم التبديل إلى عرض الخط', 'info');
+            } else {
+                growthChart.config.type = 'bar';
+                growthChart.data.datasets[0].backgroundColor = growthData.map(item => 
+                    item.growth >= 0 ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)'
+                );
+                growthChart.data.datasets[0].fill = false;
+                showToast('تم التبديل إلى عرض الأعمدة', 'info');
+            }
+            
+            growthChart.update('active');
+        } finally {
+            setTimeout(() => {
+                btn.disabled = false;
+                icon.className = 'fas fa-eye';
+            }, 500);
+        }
+    }
+
+    function exportSalesData() {
+        const btn = document.getElementById('exportSalesBtn');
+        const icon = document.getElementById('exportSalesIcon');
+        
+        try {
+            btn.disabled = true;
+            icon.className = 'fas fa-spinner fa-spin';
+            
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "الشهر,المبيعات (ج.م),عدد الطلبات\n"
+                + salesData.map(item => `${item.month},${item.revenue},${item.orderCount}`).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `sales_data_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('تم تصدير البيانات بنجاح', 'success');
+        } catch (error) {
+            showToast('حدث خطأ أثناء تصدير البيانات', 'error');
+        } finally {
+            setTimeout(() => {
+                btn.disabled = false;
+                icon.className = 'fas fa-download';
+            }, 1000);
+        }
+    }
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 5000);
+    }
+
+    // تحديث تلقائي كل 5 دقائق
+    setInterval(() => {
+        refreshSalesChart();
+        refreshCategoryChart();
+        refreshGrowthChart();
+    }, 300000); // 5 دقائق
+</script>
+}

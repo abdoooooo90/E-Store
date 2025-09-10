@@ -1,6 +1,47 @@
+@using BLL.Models.ProductDtos
+@model IEnumerable<ProductDto>
 @{
     ViewData["Title"] = "Furni - Modern Interior Design Studio";
     Layout = "~/Views/Shared/_FurniLayout.cshtml";
+}
+
+<!-- Success/Welcome Message Display -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <script>
+        // Auto-hide success message after 5 seconds
+        setTimeout(function() {
+            var alert = document.querySelector('.alert-success');
+            if (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    </script>
+}
+
+@if (TempData["WelcomeMessage"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+        <i class="fas fa-user-circle me-2"></i>
+        @TempData["WelcomeMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <script>
+        // Auto-hide welcome message after 6 seconds
+        setTimeout(function() {
+            var alert = document.querySelector('.alert-info');
+            if (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 6000);
+    </script>
 }
 
 <!-- Start Hero Section -->
@@ -36,44 +77,47 @@
             </div>
             <!-- End Column 1 -->
 
-            <!-- Start Column 2 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5 mb-md-0">
-                <a class="product-item" href="@Url.Action("Cart", "Furni")">
-                    <img src="~/furni/images/product-1.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Nordic Chair</h3>
-                    <strong class="product-price">$50.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 2 -->
-
-            <!-- Start Column 3 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5 mb-md-0">
-                <a class="product-item" href="@Url.Action("Cart", "Furni")">
-                    <img src="~/furni/images/product-2.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Kruzo Aero Chair</h3>
-                    <strong class="product-price">$78.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 3 -->
-
-            <!-- Start Column 4 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5 mb-md-0">
-                <a class="product-item" href="@Url.Action("Cart", "Furni")">
-                    <img src="~/furni/images/product-3.png" class="img-fluid product-thumbnail">
-                    <h3 class="product-title">Ergonomic Chair</h3>
-                    <strong class="product-price">$43.00</strong>
-                    <span class="icon-cross">
-                        <img src="~/furni/images/cross.svg" class="img-fluid">
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 4 -->
+            @foreach (var product in Model.Take(3))
+            {
+                <!-- Start Product Column -->
+                <div class="col-12 col-md-4 col-lg-3 mb-5 mb-md-0">
+                    <div class="product-item position-relative">
+                        <a href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">
+                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" class="img-fluid product-thumbnail" alt="@product.Name">
+                            }
+                            else
+                            {
+                                <img src="~/furni/images/product-1.png" class="img-fluid product-thumbnail" alt="@product.Name">
+                            }
+                            <h3 class="product-title">@product.Name</h3>
+                            <strong class="product-price">$@product.Price.ToString("F2")</strong>
+                        </a>
+                        
+                        <!-- Wishlist Heart Icon -->
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <button class="btn wishlist-btn position-absolute" 
+                                    data-product-id="@product.Id" 
+                                    style="top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 40px; height: 40px; z-index: 10;">
+                                <i class="fas fa-heart" style="color: #ccc; font-size: 18px;"></i>
+                            </button>
+                        }
+                        
+                        <!-- Add to Cart Icon -->
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <button class="btn add-to-cart-btn position-absolute" 
+                                    data-product-id="@product.Id" 
+                                    style="bottom: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 40px; height: 40px; z-index: 10;">
+                                <i class="fas fa-shopping-cart" style="color: #3b5d50; font-size: 16px;"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+                <!-- End Product Column -->
+            }
         </div>
     </div>
 </div>
@@ -172,44 +216,83 @@
 <div class="popular-product">
     <div class="container">
         <div class="row">
-            <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
-                <div class="product-item-sm d-flex">
-                    <div class="thumbnail">
-                        <img src="~/furni/images/product-1.png" alt="Image" class="img-fluid">
-                    </div>
-                    <div class="pt-3">
-                        <h3>Nordic Chair</h3>
-                        <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio </p>
-                        <p><a href="#">Read More</a></p>
+            @{
+                var popularProducts = Model.Skip(3).Take(3);
+            }
+            @foreach (var product in popularProducts)
+            {
+                <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+                    <div class="product-item-sm d-flex">
+                        <div class="thumbnail">
+                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" alt="@product.Name" class="img-fluid">
+                            }
+                            else
+                            {
+                                <img src="~/furni/images/product-1.png" alt="@product.Name" class="img-fluid">
+                            }
+                        </div>
+                        <div class="pt-3 position-relative">
+                            <h3>@product.Name</h3>
+                            <p>@(product.Description ?? "منتج عالي الجودة مصمم خصيصاً لراحتك وأناقة منزلك.")</p>
+                            <p><a href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">اقرأ المزيد</a></p>
+                            
+                            <!-- Wishlist Heart Icon for Popular Products -->
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button class="btn wishlist-btn position-absolute" 
+                                        data-product-id="@product.Id" 
+                                        style="top: 0; right: 0; background: none; border: none; z-index: 10;">
+                                    <i class="fas fa-heart" style="color: #ccc; font-size: 20px;"></i>
+                                </button>
+                            }
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
+            
+            @if (!popularProducts.Any())
+            {
+                <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+                    <div class="product-item-sm d-flex">
+                        <div class="thumbnail">
+                            <img src="~/furni/images/product-1.png" alt="Image" class="img-fluid">
+                        </div>
+                        <div class="pt-3">
+                            <h3>Nordic Chair</h3>
+                            <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                            <p><a href="#">Read More</a></p>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
-                <div class="product-item-sm d-flex">
-                    <div class="thumbnail">
-                        <img src="~/furni/images/product-2.png" alt="Image" class="img-fluid">
-                    </div>
-                    <div class="pt-3">
-                        <h3>Kruzo Aero Chair</h3>
-                        <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio </p>
-                        <p><a href="#">Read More</a></p>
+                <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+                    <div class="product-item-sm d-flex">
+                        <div class="thumbnail">
+                            <img src="~/furni/images/product-2.png" alt="Image" class="img-fluid">
+                        </div>
+                        <div class="pt-3">
+                            <h3>Kruzo Aero Chair</h3>
+                            <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                            <p><a href="#">Read More</a></p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
-                <div class="product-item-sm d-flex">
-                    <div class="thumbnail">
-                        <img src="~/furni/images/product-3.png" alt="Image" class="img-fluid">
-                    </div>
-                    <div class="pt-3">
-                        <h3>Ergonomic Chair</h3>
-                        <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio </p>
-                        <p><a href="#">Read More</a></p>
+                <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+                    <div class="product-item-sm d-flex">
+                        <div class="thumbnail">
+                            <img src="~/furni/images/product-3.png" alt="Image" class="img-fluid">
+                        </div>
+                        <div class="pt-3">
+                            <h3>Ergonomic Chair</h3>
+                            <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                            <p><a href="#">Read More</a></p>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 </div>
@@ -311,3 +394,292 @@
     </div>
 </div>
 <!-- End Blog Section -->
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize wishlist states
+            initializeWishlistStates();
+            
+            // Add event listeners for wishlist buttons
+            document.querySelectorAll('.wishlist-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleWishlist(this);
+                });
+            });
+            
+            // Add event listeners for add to cart buttons
+            document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addToCart(this);
+                });
+            });
+        });
+
+        function initializeWishlistStates() {
+            document.querySelectorAll('.wishlist-btn').forEach(button => {
+                const productId = button.getAttribute('data-product-id');
+                checkWishlistStatus(productId, button);
+            });
+        }
+
+        function checkWishlistStatus(productId, button) {
+            fetch(`/Wishlist/IsInWishlist?productId=${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const heart = button.querySelector('i');
+                    if (data.isInWishlist) {
+                        heart.style.color = '#dc3545';
+                        button.setAttribute('data-in-wishlist', 'true');
+                    } else {
+                        heart.style.color = '#ccc';
+                        button.setAttribute('data-in-wishlist', 'false');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking wishlist status:', error);
+                });
+        }
+
+        function toggleWishlist(button) {
+            const productId = button.getAttribute('data-product-id');
+            const isInWishlist = button.getAttribute('data-in-wishlist') === 'true';
+            const heart = button.querySelector('i');
+
+            if (isInWishlist) {
+                // Remove from wishlist
+                fetch('/Wishlist/Remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ productId: parseInt(productId) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        heart.style.color = '#ccc';
+                        button.setAttribute('data-in-wishlist', 'false');
+                        updateWishlistCount();
+                        showToast('Removed from wishlist', 'success');
+                    } else {
+                        showToast(data.message || 'Error removing from wishlist', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing from wishlist:', error);
+                    showToast('Error removing from wishlist', 'error');
+                });
+            } else {
+                // Add to wishlist
+                fetch('/Wishlist/Add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ productId: parseInt(productId) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        heart.style.color = '#dc3545';
+                        button.setAttribute('data-in-wishlist', 'true');
+                        updateWishlistCount();
+                        showToast('Added to wishlist', 'success');
+                    } else {
+                        showToast(data.message || 'Error adding to wishlist', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding to wishlist:', error);
+                    showToast('Error adding to wishlist', 'error');
+                });
+            }
+        }
+
+        function addToCart(button) {
+            const productId = button.getAttribute('data-product-id');
+            
+            fetch('/CartItem/Add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ 
+                    productId: parseInt(productId),
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateCartCount();
+                    showToast('Added to cart', 'success');
+                } else {
+                    showToast(data.message || 'Error adding to cart', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                showToast('Error adding to cart', 'error');
+            });
+        }
+
+        function updateWishlistCount() {
+            fetch('/Wishlist/GetCount')
+                .then(response => response.json())
+                .then(data => {
+                    const wishlistBadge = document.querySelector('.wishlist-count');
+                    if (wishlistBadge) {
+                        wishlistBadge.textContent = data.count;
+                    }
+                })
+                .catch(error => console.error('Error updating wishlist count:', error));
+        }
+
+        function updateCartCount() {
+            fetch('/CartItem/GetCount')
+                .then(response => response.json())
+                .then(data => {
+                    const cartBadge = document.querySelector('.cart-count');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.count;
+                    }
+                })
+                .catch(error => console.error('Error updating cart count:', error));
+        }
+
+        function showToast(message, type) {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.style.position = 'fixed';
+            toast.style.top = '20px';
+            toast.style.right = '20px';
+            toast.style.zIndex = '9999';
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Initialize and show toast
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Remove toast element after it's hidden
+            toast.addEventListener('hidden.bs.toast', () => {
+                document.body.removeChild(toast);
+            });
+        }
+    });
+
+    // Wishlist functionality
+    $('.wishlist-btn').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const productId = $(this).data('product-id');
+        const heartIcon = $(this).find('i');
+        const isInWishlist = heartIcon.hasClass('text-danger');
+        
+        if (isInWishlist) {
+            // Remove from wishlist
+            $.post('@Url.Action("RemoveFromWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.success) {
+                        heartIcon.removeClass('text-danger').css('color', '#ccc');
+                        showToast('تم إزالة المنتج من المفضلة', 'success');
+                        updateWishlistCount();
+                    } else {
+                        showToast('حدث خطأ أثناء إزالة المنتج من المفضلة', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('حدث خطأ في الاتصال', 'error');
+                });
+        } else {
+            // Add to wishlist
+            $.post('@Url.Action("AddToWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.success) {
+                        heartIcon.addClass('text-danger').css('color', '#dc3545');
+                        showToast('تم إضافة المنتج إلى المفضلة', 'success');
+                        updateWishlistCount();
+                    } else {
+                        showToast('حدث خطأ أثناء إضافة المنتج إلى المفضلة', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('حدث خطأ في الاتصال', 'error');
+                });
+        }
+    });
+
+    // Load wishlist status on page load
+    loadWishlistStatus();
+    updateWishlistCount();
+    updateCartCount();
+});
+
+// Function to load wishlist status for all products
+function loadWishlistStatus() {
+    $('.wishlist-btn').each(function() {
+        const productId = $(this).data('product-id');
+        const heartIcon = $(this).find('i');
+        
+        $.get('@Url.Action("IsInWishlist", "Wishlist")', { productId: productId })
+            .done(function(response) {
+                if (response.isInWishlist) {
+                    heartIcon.addClass('text-danger').css('color', '#dc3545');
+                } else {
+                    heartIcon.removeClass('text-danger').css('color', '#ccc');
+                }
+            });
+    });
+}
+
+// Function to update wishlist count in navigation
+function updateWishlistCount() {
+    $.get('@Url.Action("GetWishlistCount", "Wishlist")')
+        .done(function(response) {
+            $('#wishlist-count').text(response.count);
+            if (response.count > 0) {
+                $('#wishlist-count').show();
+            } else {
+                $('#wishlist-count').hide();
+            }
+        });
+}
+
+// Function to update cart count in navigation
+function updateCartCount() {
+    $.get('@Url.Action("GetCartCount", "Cart")')
+        .done(function(response) {
+            $('#cart-count').text(response.count);
+            if (response.count > 0) {
+                $('#cart-count').show();
+            } else {
+                $('#cart-count').hide();
+            }
+        });
+}
+</script>
+}

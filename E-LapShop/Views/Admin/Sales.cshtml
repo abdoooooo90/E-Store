@@ -1,0 +1,477 @@
+@using BLL.Models.OrderDtos
+@model IEnumerable<OrderDto>
+@{
+    ViewData["Title"] = "تقارير المبيعات";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-line me-2"></i>تقارير المبيعات والتحليلات</h2>
+    <div class="btn-group">
+        <button class="btn btn-primary" onclick="generateReport()">
+            <i class="fas fa-file-alt me-2"></i>إنشاء تقرير
+        </button>
+        <button class="btn btn-outline-success" onclick="exportSalesData()">
+            <i class="fas fa-download me-2"></i>تصدير البيانات
+        </button>
+    </div>
+</div>
+
+<!-- فلاتر التقارير -->
+<div class="page-header mb-4">
+    <div class="row">
+        <div class="col-md-3">
+            <label class="form-label">من تاريخ</label>
+            <input type="date" class="form-control" id="startDate" value="@DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd")">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">إلى تاريخ</label>
+            <input type="date" class="form-control" id="endDate" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">الفئة</label>
+            <select class="form-select" id="categoryFilter">
+                <option value="">جميع الفئات</option>
+                <option value="chairs">كراسي</option>
+                <option value="tables">طاولات</option>
+                <option value="sofas">أرائك</option>
+                <option value="cabinets">خزائن</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">نوع التقرير</label>
+            <select class="form-select" id="reportType">
+                <option value="daily">يومي</option>
+                <option value="weekly">أسبوعي</option>
+                <option value="monthly">شهري</option>
+                <option value="yearly">سنوي</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <button class="btn btn-primary" onclick="updateCharts()">
+                <i class="fas fa-sync me-2"></i>تحديث التقارير
+            </button>
+            <button class="btn btn-outline-secondary" onclick="resetFilters()">
+                <i class="fas fa-times me-2"></i>مسح الفلاتر
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- إحصائيات سريعة -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="text-primary mb-1" id="totalRevenue">@(Model?.Sum(o => o.TotalAmount).ToString("C") ?? "0")</h3>
+                    <p class="text-muted mb-0">إجمالي المبيعات</p>
+                </div>
+                <div class="stats-icon bg-primary">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-success"><i class="fas fa-arrow-up me-1"></i>+12% من الشهر الماضي</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="text-success mb-1" id="totalOrders">@(Model?.Count() ?? 0)</h3>
+                    <p class="text-muted mb-0">عدد الطلبات</p>
+                </div>
+                <div class="stats-icon bg-success">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-success"><i class="fas fa-arrow-up me-1"></i>+8% من الشهر الماضي</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="text-info mb-1" id="avgOrderValue">@(Model?.Any() == true ? (Model.Sum(o => o.TotalAmount) / Model.Count()).ToString("C") : "0")</h3>
+                    <p class="text-muted mb-0">متوسط قيمة الطلب</p>
+                </div>
+                <div class="stats-icon bg-info">
+                    <i class="fas fa-calculator"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-success"><i class="fas fa-arrow-up me-1"></i>+5% من الشهر الماضي</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="text-warning mb-1" id="completedOrders">@(Model?.Where(o => o.Status?.ToLower() == "delivered").Count() ?? 0)</h3>
+                    <p class="text-muted mb-0">طلبات مكتملة</p>
+                </div>
+                <div class="stats-icon bg-warning">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-success"><i class="fas fa-arrow-up me-1"></i>+15% من الشهر الماضي</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- الرسوم البيانية -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="page-header">
+            <h5 class="mb-3"><i class="fas fa-chart-area me-2"></i>مبيعات الفترة الزمنية</h5>
+            <canvas id="salesChart" height="100"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="page-header">
+            <h5 class="mb-3"><i class="fas fa-chart-pie me-2"></i>توزيع المبيعات حسب الفئة</h5>
+            <canvas id="categoryChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="page-header">
+            <h5 class="mb-3"><i class="fas fa-chart-bar me-2"></i>أفضل المنتجات مبيعاً</h5>
+            <canvas id="topProductsChart" height="150"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="page-header">
+            <h5 class="mb-3"><i class="fas fa-chart-line me-2"></i>نمو المبيعات الشهري</h5>
+            <canvas id="growthChart" height="150"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- جدول أفضل المنتجات -->
+<div class="page-header mb-4">
+    <h5 class="mb-3"><i class="fas fa-trophy me-2"></i>أفضل المنتجات أداءً</h5>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>الترتيب</th>
+                    <th>المنتج</th>
+                    <th>الفئة</th>
+                    <th>عدد المبيعات</th>
+                    <th>إجمالي الإيرادات</th>
+                    <th>متوسط التقييم</th>
+                </tr>
+            </thead>
+            <tbody id="topProductsTable">
+                <!-- سيتم ملء البيانات بواسطة JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- جدول تحليل العملاء -->
+<div class="page-header">
+    <h5 class="mb-3"><i class="fas fa-users me-2"></i>تحليل العملاء</h5>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>العميل</th>
+                    <th>عدد الطلبات</th>
+                    <th>إجمالي المشتريات</th>
+                    <th>متوسط قيمة الطلب</th>
+                    <th>آخر طلب</th>
+                    <th>حالة العميل</th>
+                </tr>
+            </thead>
+            <tbody id="customersAnalysisTable">
+                <!-- سيتم ملء البيانات بواسطة JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let salesChart, categoryChart, topProductsChart, growthChart;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        loadTopProducts();
+        loadCustomersAnalysis();
+    });
+
+    function initializeCharts() {
+        // رسم بياني للمبيعات الزمنية
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        salesChart = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                datasets: [{
+                    label: 'المبيعات',
+                    data: [12000, 19000, 15000, 25000, 22000, 30000],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' ر.س';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // رسم بياني دائري للفئات
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        categoryChart = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['كراسي', 'طاولات', 'أرائك', 'خزائن'],
+                datasets: [{
+                    data: [30, 25, 20, 25],
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // رسم بياني لأفضل المنتجات
+        const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+        topProductsChart = new Chart(topProductsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['كرسي مكتبي', 'طاولة خشبية', 'أريكة جلدية', 'خزانة ملابس', 'طاولة قهوة'],
+                datasets: [{
+                    label: 'المبيعات',
+                    data: [65, 59, 80, 81, 56],
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // رسم بياني لنمو المبيعات
+        const growthCtx = document.getElementById('growthChart').getContext('2d');
+        growthChart = new Chart(growthCtx, {
+            type: 'line',
+            data: {
+                labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                datasets: [{
+                    label: 'نسبة النمو %',
+                    data: [5, 12, -3, 15, 8, 20],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateCharts() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const category = document.getElementById('categoryFilter').value;
+        const reportType = document.getElementById('reportType').value;
+
+        // هنا يمكن إضافة استدعاء API لتحديث البيانات
+        fetch('/Admin/GetSalesData', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                startDate: startDate,
+                endDate: endDate,
+                category: category,
+                reportType: reportType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // تحديث الرسوم البيانية بالبيانات الجديدة
+            updateChartsWithData(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function updateChartsWithData(data) {
+        // تحديث بيانات الرسوم البيانية
+        if (data.salesData) {
+            salesChart.data.labels = data.salesData.labels;
+            salesChart.data.datasets[0].data = data.salesData.values;
+            salesChart.update();
+        }
+
+        if (data.categoryData) {
+            categoryChart.data.labels = data.categoryData.labels;
+            categoryChart.data.datasets[0].data = data.categoryData.values;
+            categoryChart.update();
+        }
+
+        // تحديث الإحصائيات
+        if (data.statistics) {
+            document.getElementById('totalRevenue').textContent = data.statistics.totalRevenue;
+            document.getElementById('totalOrders').textContent = data.statistics.totalOrders;
+            document.getElementById('avgOrderValue').textContent = data.statistics.avgOrderValue;
+            document.getElementById('completedOrders').textContent = data.statistics.completedOrders;
+        }
+    }
+
+    function loadTopProducts() {
+        // تحميل بيانات أفضل المنتجات
+        const tableBody = document.getElementById('topProductsTable');
+        const sampleData = [
+            { rank: 1, name: 'كرسي مكتبي فاخر', category: 'كراسي', sales: 125, revenue: '15,000 ر.س', rating: 4.8 },
+            { rank: 2, name: 'طاولة خشبية كلاسيكية', category: 'طاولات', sales: 98, revenue: '12,250 ر.س', rating: 4.6 },
+            { rank: 3, name: 'أريكة جلدية حديثة', category: 'أرائك', sales: 87, revenue: '26,100 ر.س', rating: 4.9 },
+            { rank: 4, name: 'خزانة ملابس بمرآة', category: 'خزائن', sales: 76, revenue: '22,800 ر.س', rating: 4.5 },
+            { rank: 5, name: 'طاولة قهوة زجاجية', category: 'طاولات', sales: 65, revenue: '9,750 ر.س', rating: 4.3 }
+        ];
+
+        tableBody.innerHTML = sampleData.map(product => `
+            <tr>
+                <td><span class="badge bg-primary">${product.rank}</span></td>
+                <td><strong>${product.name}</strong></td>
+                <td><span class="badge bg-info">${product.category}</span></td>
+                <td>${product.sales}</td>
+                <td class="text-success"><strong>${product.revenue}</strong></td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">${product.rating}</span>
+                        <div class="text-warning">
+                            ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function loadCustomersAnalysis() {
+        // تحميل بيانات تحليل العملاء
+        const tableBody = document.getElementById('customersAnalysisTable');
+        const sampleData = [
+            { name: 'أحمد محمد', orders: 12, total: '18,500 ر.س', avg: '1,542 ر.س', lastOrder: '2024-01-15', status: 'VIP' },
+            { name: 'فاطمة علي', orders: 8, total: '12,300 ر.س', avg: '1,538 ر.س', lastOrder: '2024-01-10', status: 'نشط' },
+            { name: 'محمد سالم', orders: 15, total: '25,600 ر.س', avg: '1,707 ر.س', lastOrder: '2024-01-12', status: 'VIP' },
+            { name: 'نورا أحمد', orders: 6, total: '8,900 ر.س', avg: '1,483 ر.س', lastOrder: '2024-01-08', status: 'نشط' },
+            { name: 'خالد يوسف', orders: 20, total: '35,200 ر.س', avg: '1,760 ر.س', lastOrder: '2024-01-14', status: 'VIP' }
+        ];
+
+        tableBody.innerHTML = sampleData.map(customer => `
+            <tr>
+                <td><strong>${customer.name}</strong></td>
+                <td>${customer.orders}</td>
+                <td class="text-success"><strong>${customer.total}</strong></td>
+                <td>${customer.avg}</td>
+                <td><small class="text-muted">${customer.lastOrder}</small></td>
+                <td>
+                    <span class="badge ${customer.status === 'VIP' ? 'bg-warning' : 'bg-success'}">
+                        ${customer.status}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function resetFilters() {
+        document.getElementById('startDate').value = '@DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd")';
+        document.getElementById('endDate').value = '@DateTime.Now.ToString("yyyy-MM-dd")';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('reportType').value = 'monthly';
+        updateCharts();
+    }
+
+    function generateReport() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const category = document.getElementById('categoryFilter').value;
+        const reportType = document.getElementById('reportType').value;
+
+        window.open(`/Admin/GenerateReport?startDate=${startDate}&endDate=${endDate}&category=${category}&reportType=${reportType}`, '_blank');
+    }
+
+    function exportSalesData() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        window.location.href = `/Admin/ExportSalesData?startDate=${startDate}&endDate=${endDate}`;
+    }
+</script>
+}

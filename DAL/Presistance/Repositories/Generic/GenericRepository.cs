@@ -1,4 +1,4 @@
-﻿using DAL.Models;
+using DAL.Models;
 using DAL.Presistance.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,7 +12,7 @@ namespace DAL.Presistance.Repositories.Generic
     public class GenericRepository<T>: IGenericRepository<T> where T: BaseEntity
     {
 
-        private readonly ApplicationDbContext _context;
+        protected readonly ApplicationDbContext _context;
         private readonly DbSet<T> _dbSet;
 
         public GenericRepository(ApplicationDbContext context)

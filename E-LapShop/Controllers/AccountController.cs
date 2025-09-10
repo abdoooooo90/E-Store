@@ -1,4 +1,4 @@
-﻿
+
 using DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,25 +24,28 @@ namespace E_LapShop.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(string fullName, string email, string password)
         {
-            var user = new ApplicationUser
+            if (ModelState.IsValid)
             {
-                UserName = email,
-                Email = email,
-                FullName = fullName
-            };
+                var user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    FullName = fullName
+                };
 
-            var result = await _userManager.CreateAsync(user, password);
+                var result = await _userManager.CreateAsync(user, password);
 
-            if (result.Succeeded)
-            {
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("Index", "Home");
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = "تم إنشاء الحساب بنجاح! يرجى تسجيل الدخول الآن";
+                    return RedirectToAction("Auth", "Account");
+                }
+
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError("", error.Description);
             }
 
-            foreach (var error in result.Errors)
-                ModelState.AddModelError("", error.Description);
-
-            return View();
+            return View("Auth");
         }
         [HttpGet]
         public IActionResult Login()
@@ -50,23 +53,47 @@ namespace E_LapShop.Controllers
             return View();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        [HttpGet]
+        public IActionResult Auth()
         {
-            var result = await _signInManager.PasswordSignInAsync(email, password, false, false);
-
-            if (result.Succeeded)
-                return RedirectToAction("Index", "Home");
-
-            ModelState.AddModelError("", "Invalid login attempt");
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(string email, string password, bool rememberMe = false)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, false);
+
+                if (result.Succeeded)
+                {
+                    var user = await _userManager.FindByEmailAsync(email);
+                    
+                    // Check if user is admin
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        TempData["AdminWelcomeMessage"] = $"مرحباً بك في لوحة التحكم {user?.FullName}! تم تسجيل الدخول بنجاح";
+                        return RedirectToAction("Index", "Admin");
+                    }
+                    else
+                    {
+                        TempData["WelcomeMessage"] = $"مرحباً بك {user?.FullName}! تم تسجيل الدخول بنجاح";
+                        return RedirectToAction("Index", "Furni");
+                    }
+                }
+
+                ModelState.AddModelError("", "Invalid login attempt");
+            }
+
+            return View("Auth");
         }
 
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Furni");
         }
     }
 }

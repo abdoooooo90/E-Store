@@ -1,6 +1,6 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BLL.Models.ProductDtos;
-using BLL.Services.ProductService.ProductService;
+using BLL.Services.ProductServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

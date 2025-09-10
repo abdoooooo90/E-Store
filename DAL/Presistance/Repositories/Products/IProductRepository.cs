@@ -1,4 +1,4 @@
-﻿using DAL.Models;
+using DAL.Models;
 using DAL.Presistance.Repositories.Generic;
 using System;
 using System.Collections.Generic;
@@ -11,5 +11,6 @@ namespace DAL.Presistance.Repositories.Products
 {
     public interface IProductRepository: IGenericRepository<Product>
     {
+        Task<IEnumerable<Product>> GetAllWithCategoryAsync();
     }
 }

@@ -1,0 +1,318 @@
+@using BLL.Models.OrderDtos
+@model IEnumerable<OrderDto>
+@{
+    ViewData["Title"] = "إدارة الطلبات";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-shopping-cart me-2"></i>إدارة الطلبات</h2>
+    <div class="btn-group">
+        <button class="btn btn-outline-primary" onclick="exportOrders()">
+            <i class="fas fa-download me-2"></i>تصدير البيانات
+        </button>
+        <button class="btn btn-outline-success" onclick="refreshOrders()">
+            <i class="fas fa-sync me-2"></i>تحديث
+        </button>
+    </div>
+</div>
+
+<!-- فلاتر الطلبات -->
+<div class="page-header mb-4">
+    <div class="row">
+        <div class="col-md-3">
+            <input type="text" class="form-control" placeholder="رقم الطلب أو اسم العميل..." id="searchInput">
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="statusFilter">
+                <option value="">جميع الحالات</option>
+                <option value="pending">في الانتظار</option>
+                <option value="processing">قيد المعالجة</option>
+                <option value="shipped">تم الشحن</option>
+                <option value="delivered">تم التسليم</option>
+                <option value="cancelled">ملغي</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" id="paymentFilter">
+                <option value="">جميع طرق الدفع</option>
+                <option value="credit">بطاقة ائتمان</option>
+                <option value="paypal">PayPal</option>
+                <option value="cash">الدفع عند الاستلام</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" class="form-control" id="dateFilter">
+        </div>
+        <div class="col-md-3">
+            <div class="btn-group w-100">
+                <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                    <i class="fas fa-times me-2"></i>مسح
+                </button>
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-search me-2"></i>بحث
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- جدول الطلبات -->
+<div class="page-header">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>المنتجات</th>
+                    <th>المبلغ الإجمالي</th>
+                    <th>طريقة الدفع</th>
+                    <th>الحالة</th>
+                    <th>تاريخ الطلب</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong class="text-primary">#@order.Id</strong>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>عميل #@order.Id</strong>
+                                    <br><small class="text-muted">@order.UserId</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">عناصر متعددة</span>
+                            </td>
+                            <td>
+                                <strong class="text-success">@order.TotalAmount.ToString("C")</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary"><i class="fas fa-credit-card me-1"></i>بطاقة ائتمان</span>
+                            </td>
+                            <td>
+                                @switch (order.Status?.ToLower())
+                                {
+                                    case "pending":
+                                        <span class="badge bg-warning">في الانتظار</span>
+                                        break;
+                                    case "processing":
+                                        <span class="badge bg-info">قيد المعالجة</span>
+                                        break;
+                                    case "shipped":
+                                        <span class="badge bg-primary">تم الشحن</span>
+                                        break;
+                                    case "delivered":
+                                        <span class="badge bg-success">تم التسليم</span>
+                                        break;
+                                    case "cancelled":
+                                        <span class="badge bg-danger">ملغي</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">@order.Status</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <small>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-info" 
+                                            onclick="viewOrderDetails(@order.Id)" title="عرض التفاصيل">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-warning dropdown-toggle" 
+                                                data-bs-toggle="dropdown" title="تغيير الحالة">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(@order.Id, 'processing')">قيد المعالجة</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(@order.Id, 'shipped')">تم الشحن</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(@order.Id, 'delivered')">تم التسليم</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="updateOrderStatus(@order.Id, 'cancelled')">إلغاء الطلب</a></li>
+                                        </ul>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-success" 
+                                            onclick="printInvoice(@order.Id)" title="طباعة الفاتورة">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">لا توجد طلبات حالياً</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- إحصائيات الطلبات -->
+<div class="row mt-4">
+    <div class="col-md-2">
+        <div class="stats-card text-center">
+            <h5 class="text-primary">@(Model?.Count() ?? 0)</h5>
+            <small class="text-muted">إجمالي الطلبات</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card text-center">
+            <h5 class="text-warning">@(Model?.Where(o => o.Status?.ToLower() == "pending").Count() ?? 0)</h5>
+            <small class="text-muted">في الانتظار</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card text-center">
+            <h5 class="text-info">@(Model?.Where(o => o.Status?.ToLower() == "processing").Count() ?? 0)</h5>
+            <small class="text-muted">قيد المعالجة</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card text-center">
+            <h5 class="text-primary">@(Model?.Where(o => o.Status?.ToLower() == "shipped").Count() ?? 0)</h5>
+            <small class="text-muted">تم الشحن</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card text-center">
+            <h5 class="text-success">@(Model?.Where(o => o.Status?.ToLower() == "delivered").Count() ?? 0)</h5>
+            <small class="text-muted">تم التسليم</small>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card text-center">
+            <h5 class="text-danger">@(Model?.Where(o => o.Status?.ToLower() == "cancelled").Count() ?? 0)</h5>
+            <small class="text-muted">ملغي</small>
+        </div>
+    </div>
+</div>
+
+<!-- Modal لعرض تفاصيل الطلب -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تفاصيل الطلب</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderDetailsContent">
+                <!-- سيتم تحميل التفاصيل هنا -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function applyFilters() {
+        // تطبيق الفلاتر
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+        const paymentFilter = document.getElementById('paymentFilter').value.toLowerCase();
+        const dateFilter = document.getElementById('dateFilter').value;
+        
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            if (row.cells.length < 8) return; // تجاهل الصف الفارغ
+            
+            const orderInfo = row.cells[0]?.textContent.toLowerCase() + ' ' + row.cells[1]?.textContent.toLowerCase();
+            const status = row.cells[5]?.textContent.toLowerCase();
+            const payment = row.cells[4]?.textContent.toLowerCase();
+            const orderDate = row.cells[6]?.textContent;
+            
+            const matchesSearch = !searchTerm || orderInfo.includes(searchTerm);
+            const matchesStatus = !statusFilter || status.includes(statusFilter);
+            const matchesPayment = !paymentFilter || payment.includes(paymentFilter);
+            const matchesDate = !dateFilter || orderDate.includes(dateFilter);
+            
+            if (matchesSearch && matchesStatus && matchesPayment && matchesDate) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('paymentFilter').value = '';
+        document.getElementById('dateFilter').value = '';
+        applyFilters();
+    }
+
+    function viewOrderDetails(orderId) {
+        // عرض تفاصيل الطلب
+        fetch(`/Admin/OrderDetails/${orderId}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('orderDetailsContent').innerHTML = html;
+                new bootstrap.Modal(document.getElementById('orderDetailsModal')).show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء تحميل تفاصيل الطلب');
+            });
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+        if (confirm(`هل أنت متأكد من تغيير حالة الطلب؟`)) {
+            fetch(`/Admin/UpdateOrderStatus`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ orderId: orderId, status: newStatus })
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('حدث خطأ أثناء تحديث حالة الطلب');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء تحديث حالة الطلب');
+            });
+        }
+    }
+
+    function printInvoice(orderId) {
+        window.open(`/Admin/PrintInvoice/${orderId}`, '_blank');
+    }
+
+    function exportOrders() {
+        window.location.href = '/Admin/ExportOrders';
+    }
+
+    function refreshOrders() {
+        location.reload();
+    }
+
+    // تطبيق الفلاتر عند الكتابة
+    document.getElementById('searchInput').addEventListener('keyup', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('paymentFilter').addEventListener('change', applyFilters);
+    document.getElementById('dateFilter').addEventListener('change', applyFilters);
+</script>
+}

@@ -1,0 +1,234 @@
+@using BLL.Models.ProductDtos
+@model IEnumerable<ProductDto>
+@{
+    ViewData["Title"] = "إدارة المنتجات";
+    Layout = "~/Views/Admin/_AdminLayout.cshtml";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-box me-2"></i>إدارة المنتجات</h2>
+    <a href="@Url.Action("CreateProduct", "Admin")" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>إضافة منتج جديد
+    </a>
+</div>
+
+<!-- فلاتر البحث -->
+<div class="page-header mb-4">
+    <div class="row">
+        <div class="col-md-4">
+            <input type="text" class="form-control" placeholder="البحث في المنتجات..." id="searchInput">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="categoryFilter">
+                <option value="">جميع الفئات</option>
+                <option value="chairs">كراسي</option>
+                <option value="tables">طاولات</option>
+                <option value="sofas">أرائك</option>
+                <option value="cabinets">خزائن</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" id="statusFilter">
+                <option value="">جميع الحالات</option>
+                <option value="active">متاح</option>
+                <option value="inactive">غير متاح</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                <i class="fas fa-times me-2"></i>مسح
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- جدول المنتجات -->
+<div class="page-header">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>الصورة</th>
+                    <th>اسم المنتج</th>
+                    <th>الفئة</th>
+                    <th>السعر</th>
+                    <th>الكمية</th>
+                    <th>الحالة</th>
+                    <th>تاريخ الإضافة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var product in Model)
+                    {
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                {
+                                    <img src="@product.ImageUrl" alt="@product.Name" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border-radius: 5px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                }
+                            </td>
+                            <td>
+                                <strong>@product.Name</strong>
+                                <br><small class="text-muted">@product.Description</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">@(product.CategoryName ?? "غير محدد")</span>
+                            </td>
+                            <td>
+                                <strong class="text-success">@product.Price.ToString("C")</strong>
+                            </td>
+                            <td>
+                                <span class="badge @(product.Stock > 10 ? "bg-success" : product.Stock > 0 ? "bg-warning" : "bg-danger")">
+                                    @product.Stock
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge @(product.Stock > 0 ? "bg-success" : "bg-danger")">
+                                    @(product.Stock > 0 ? "متاح" : "نفد المخزون")
+                                </span>
+                            </td>
+                            <td>
+                                <small class="text-muted">حديث</small>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="@Url.Action("EditProduct", "Admin", new { id = product.Id })" 
+                                       class="btn btn-sm btn-outline-warning" title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger" 
+                                            title="حذف"
+                                            onclick="confirmDelete(@product.Id, '@Html.Raw(product.Name.Replace("'", "\\'"))')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">لا توجد منتجات حالياً</p>
+                            <a href="@Url.Action("CreateProduct", "Admin")" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>إضافة أول منتج
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- إحصائيات سريعة -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="stats-card text-center">
+            <h5 class="text-primary">@(Model?.Count() ?? 0)</h5>
+            <small class="text-muted">إجمالي المنتجات</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card text-center">
+            <h5 class="text-success">@(Model?.Where(p => p.Stock > 0).Count() ?? 0)</h5>
+            <small class="text-muted">منتجات متاحة</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card text-center">
+            <h5 class="text-warning">@(Model?.Where(p => p.Stock <= 10 && p.Stock > 0).Count() ?? 0)</h5>
+            <small class="text-muted">مخزون منخفض</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card text-center">
+            <h5 class="text-danger">@(Model?.Where(p => p.Stock == 0).Count() ?? 0)</h5>
+            <small class="text-muted">نفد المخزون</small>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // البحث في المنتجات
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        filterTable();
+    });
+
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+        filterTable();
+    });
+
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        filterTable();
+    });
+
+    function filterTable() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+        
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const productName = row.cells[1]?.textContent.toLowerCase() || '';
+            const category = row.cells[2]?.textContent.toLowerCase() || '';
+            const status = row.cells[5]?.textContent.toLowerCase() || '';
+            
+            const matchesSearch = productName.includes(searchTerm);
+            const matchesCategory = !categoryFilter || category.includes(categoryFilter);
+            const matchesStatus = !statusFilter || 
+                (statusFilter === 'active' && status.includes('متاح')) ||
+                (statusFilter === 'inactive' && status.includes('نفد'));
+            
+            if (matchesSearch && matchesCategory && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('statusFilter').value = '';
+        filterTable();
+    }
+
+    function confirmDelete(productId, productName) {
+        if (confirm(`هل أنت متأكد من حذف المنتج "${productName}"؟\nسيتم توجيهك لصفحة التأكيد النهائي.`)) {
+            window.location.href = `/Admin/DeleteProduct/${productId}`;
+        }
+    }
+</script>
+}
