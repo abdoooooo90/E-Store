@@ -1,7 +1,7 @@
 @using BLL.Models.ProductDtos
 @model ProductDto
 @{
-    ViewData["Title"] = "حذف المنتج";
+    ViewData["Title"] = "Delete Product";
     Layout = "~/Views/Admin/_AdminLayout.cshtml";
 }
 
@@ -10,11 +10,11 @@
         <div class="col-md-8">
             <div class="card shadow-lg border-danger">
                 <div class="card-header bg-danger text-white text-center">
-                    <h3><i class="fas fa-exclamation-triangle me-2"></i>تأكيد حذف المنتج</h3>
+                    <h3><i class="fas fa-exclamation-triangle me-2"></i>Confirm Product Deletion</h3>
                 </div>
                 <div class="card-body p-4">
 
-                    <!-- معلومات المنتج -->
+                    <!-- Product Information -->
                     <div class="text-center mb-4">
                         @if (!string.IsNullOrEmpty(Model.ImageUrl))
                         {
@@ -24,30 +24,30 @@
                         <p class="text-muted mb-3">@Model.Description</p>
                         <div class="row">
                             <div class="col-6">
-                                <strong>السعر:</strong> <span class="text-success">@Model.Price.ToString("C")</span>
+                                <strong>Price:</strong> <span class="text-success">@Model.Price.ToString("C")</span>
                             </div>
                             <div class="col-6">
-                                <strong>المخزون:</strong> <span class="badge bg-info">@Model.Stock</span>
+                                <strong>Stock:</strong> <span class="badge bg-info">@Model.Stock</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="alert alert-warning text-center mb-4">
                         <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>تحذير:</strong> سيتم حذف هذا المنتج نهائياً ولا يمكن استرداده!
+                        <strong>Warning:</strong> This product will be permanently deleted and cannot be recovered!
                     </div>
 
-                    <!-- نموذج الحذف المبسط -->
+                    <!-- Simplified Delete Form -->
                     <form method="post" asp-controller="Admin" asp-action="DeleteProductConfirmed" id="deleteForm">
                         <input type="hidden" name="id" value="@Model.Id" />
                         @Html.AntiForgeryToken()
                         
                         <div class="text-center">
                             <button type="submit" class="btn btn-danger btn-lg me-3" id="confirmDeleteBtn">
-                                <i class="fas fa-trash me-2"></i>نعم، احذف المنتج
+                                <i class="fas fa-trash me-2"></i>Yes, Delete Product
                             </button>
                             <a href="@Url.Action("Products", "Admin")" class="btn btn-secondary btn-lg">
-                                <i class="fas fa-times me-2"></i>إلغاء
+                                <i class="fas fa-times me-2"></i>Cancel
                             </a>
                         </div>
                     </form>
@@ -63,30 +63,30 @@
     $(document).ready(function() {
         console.log('Delete page loaded, product ID: @Model.Id');
         
-        // مراقبة إرسال النموذج
+        // Monitor form submission
         $('#deleteForm').on('submit', function(e) {
             console.log('Form submit event triggered');
             var productName = '@Html.Raw(Model.Name.Replace("'", "\\'"))';
             
-            // منع الإرسال الافتراضي للتأكيد أولاً
+            // Prevent default submission for confirmation first
             e.preventDefault();
             
-            // تأكيد أول
-            if (confirm('هل أنت متأكد من حذف المنتج "' + productName + '"؟')) {
+            // First confirmation
+            if (confirm('Are you sure you want to delete the product "' + productName + '"?')) {
                 console.log('First confirmation accepted');
-                // تأكيد ثاني
-                if (confirm('تحذير: هذا الإجراء لا يمكن التراجع عنه!\n\nهل تريد المتابعة؟')) {
+                // Second confirmation
+                if (confirm('Warning: This action cannot be undone!\n\nDo you want to continue?')) {
                     console.log('Second confirmation accepted, submitting form');
                     
-                    // إظهار مؤشر التحميل
-                    $('#confirmDeleteBtn').html('<i class="fas fa-spinner fa-spin me-2"></i>جاري الحذف...');
+                    // Show loading indicator
+                    $('#confirmDeleteBtn').html('<i class="fas fa-spinner fa-spin me-2"></i>Deleting...');
                     $('#confirmDeleteBtn').prop('disabled', true);
                     
                     console.log('Form action:', $(this).attr('action'));
                     console.log('Form method:', $(this).attr('method'));
                     console.log('Product ID:', $('input[name="id"]').val());
                     
-                    // إرسال النموذج فعلياً
+                    // Actually submit the form
                     this.submit();
                 } else {
                     console.log('Second confirmation cancelled');

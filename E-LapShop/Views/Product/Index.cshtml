@@ -1,4 +1,4 @@
-﻿@model IEnumerable<BLL.Models.ProductDtos.ProductDto>
+@model IEnumerable<BLL.Models.ProductDtos.ProductDto>
 
 @{
     ViewBag.Title = "Products";
@@ -34,7 +34,7 @@
                             <div class="text-center">
                                 <h5 class="fw-bolder">@product.Name</h5>
                                 <span class="text-muted">@product.Description</span>
-                                <div class="mt-2 fw-bold">$@product.Price.ToString("F2")</div>
+                                <div class="mt-2 fw-bold">@product.Price.ToString("F2") EGP</div>
                             </div>
                         </div>
                         <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center">

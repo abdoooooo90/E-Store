@@ -71,49 +71,48 @@
         <div class="row">
             <!-- Start Column 1 -->
             <div class="col-md-12 col-lg-3 mb-5 mb-lg-0">
-                <h2 class="mb-4 section-title">Crafted with excellent material.</h2>
-                <p class="mb-4">Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate velit imperdiet dolor tempor tristique. </p>
-                <p><a href="@Url.Action("Shop", "Furni")" class="btn">Explore</a></p>
+                <h2 class="mb-4 section-title">Latest Products</h2>
+                <p class="mb-4">Discover the newest products recently added to our store. High-quality products designed specifically for your comfort and home elegance.</p>
+                <p><a href="@Url.Action("Shop", "Furni")" class="btn">Explore More</a></p>
             </div>
             <!-- End Column 1 -->
 
-            @foreach (var product in Model.Take(3))
+            @foreach (var product in Model)
             {
                 <!-- Start Product Column -->
                 <div class="col-12 col-md-4 col-lg-3 mb-5 mb-md-0">
-                    <div class="product-item position-relative">
-                        <a href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">
-                            @if (!string.IsNullOrEmpty(product.ImageUrl))
-                            {
-                                <img src="@product.ImageUrl" class="img-fluid product-thumbnail" alt="@product.Name">
-                            }
-                            else
-                            {
-                                <img src="~/furni/images/product-1.png" class="img-fluid product-thumbnail" alt="@product.Name">
-                            }
-                            <h3 class="product-title">@product.Name</h3>
-                            <strong class="product-price">$@product.Price.ToString("F2")</strong>
-                        </a>
+                    <div class="product-item-wrapper position-relative">
+                        <!-- New Badge - Only for latest products -->
+                        <div class="new-badge">
+                            <span class="badge bg-danger">New</span>
+                        </div>
                         
                         <!-- Wishlist Heart Icon -->
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <button class="btn wishlist-btn position-absolute" 
+                            <button class="btn btn-link position-absolute wishlist-btn" 
                                     data-product-id="@product.Id" 
-                                    style="top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 40px; height: 40px; z-index: 10;">
-                                <i class="fas fa-heart" style="color: #ccc; font-size: 18px;"></i>
+                                    style="top: 10px; right: 10px; z-index: 10; background: none; border: none; padding: 0;">
+                                <i class="fas fa-heart text-muted wishlist-icon" style="font-size: 1.5rem; text-shadow: 0 0 3px rgba(255,255,255,0.8);"></i>
                             </button>
                         }
                         
-                        <!-- Add to Cart Icon -->
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <button class="btn add-to-cart-btn position-absolute" 
-                                    data-product-id="@product.Id" 
-                                    style="bottom: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 40px; height: 40px; z-index: 10;">
-                                <i class="fas fa-shopping-cart" style="color: #3b5d50; font-size: 16px;"></i>
-                            </button>
-                        }
+                        <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">
+                            <img src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : "~/furni/images/product-1.png")" class="img-fluid product-thumbnail">
+                            <h3 class="product-title">@product.Name</h3>
+                            <strong class="product-price">@product.Price.ToString("F2") EGP</strong>
+                            
+                            @if (!product.IsAvailable || product.Stock <= 0)
+                            {
+                                <div class="unavailable-badge">
+                                    <small class="text-muted">Currently Unavailable</small>
+                                </div>
+                            }
+                            
+                            <span class="icon-cross">
+                                <img src="~/furni/images/cross.svg" class="img-fluid">
+                            </span>
+                        </a>
                     </div>
                 </div>
                 <!-- End Product Column -->
@@ -122,6 +121,58 @@
     </div>
 </div>
 <!-- End Product Section -->
+
+<!-- Shop Style for Home Products -->
+<style>
+.product-item-wrapper:hover .wishlist-btn {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.wishlist-btn:hover {
+    background: none !important;
+}
+
+.wishlist-icon.text-danger {
+    color: #dc3545 !important;
+}
+
+.wishlist-icon.text-muted {
+    color: #6c757d !important;
+}
+
+.unavailable-badge {
+    background-color: rgba(108, 117, 125, 0.1);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.product-item-wrapper:has(.unavailable-badge) .product-item {
+    opacity: 0.7;
+}
+
+.product-item-wrapper:has(.unavailable-badge) .product-thumbnail {
+    filter: grayscale(30%);
+}
+
+.new-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 15;
+}
+
+.new-badge .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>
 
 <!-- Start Why Choose Us Section -->
 <div class="why-choose-section">
@@ -235,8 +286,8 @@
                         </div>
                         <div class="pt-3 position-relative">
                             <h3>@product.Name</h3>
-                            <p>@(product.Description ?? "منتج عالي الجودة مصمم خصيصاً لراحتك وأناقة منزلك.")</p>
-                            <p><a href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">اقرأ المزيد</a></p>
+                            <p>@(product.Description ?? "High-quality product designed specifically for your comfort and home elegance.")</p>
+                            <p><a href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">Read More</a></p>
                             
                             <!-- Wishlist Heart Icon for Popular Products -->
                             @if (User.Identity?.IsAuthenticated == true)
@@ -244,7 +295,7 @@
                                 <button class="btn wishlist-btn position-absolute" 
                                         data-product-id="@product.Id" 
                                         style="top: 0; right: 0; background: none; border: none; z-index: 10;">
-                                    <i class="fas fa-heart" style="color: #ccc; font-size: 20px;"></i>
+                                    <i class="fas fa-heart" style="color: #ccc; font-size: 1.3rem; text-shadow: 0 0 3px rgba(255,255,255,0.8);"></i>
                                 </button>
                             }
                         </div>
@@ -546,12 +597,17 @@
         }
 
         function updateCartCount() {
-            fetch('/CartItem/GetCount')
+            fetch('/Cart/GetCartCount')
                 .then(response => response.json())
                 .then(data => {
-                    const cartBadge = document.querySelector('.cart-count');
+                    const cartBadge = document.querySelector('#cart-count');
                     if (cartBadge) {
                         cartBadge.textContent = data.count;
+                        if (data.count > 0) {
+                            cartBadge.style.display = 'inline';
+                        } else {
+                            cartBadge.style.display = 'none';
+                        }
                     }
                 })
                 .catch(error => console.error('Error updating cart count:', error));
@@ -606,14 +662,14 @@
                 .done(function(response) {
                     if (response.success) {
                         heartIcon.removeClass('text-danger').css('color', '#ccc');
-                        showToast('تم إزالة المنتج من المفضلة', 'success');
+                        showToast('Product removed from wishlist', 'success');
                         updateWishlistCount();
                     } else {
-                        showToast('حدث خطأ أثناء إزالة المنتج من المفضلة', 'error');
+                        showToast('Error removing product from wishlist', 'error');
                     }
                 })
                 .fail(function() {
-                    showToast('حدث خطأ في الاتصال', 'error');
+                    showToast('Connection error', 'error');
                 });
         } else {
             // Add to wishlist
@@ -621,14 +677,14 @@
                 .done(function(response) {
                     if (response.success) {
                         heartIcon.addClass('text-danger').css('color', '#dc3545');
-                        showToast('تم إضافة المنتج إلى المفضلة', 'success');
+                        showToast('Product added to wishlist', 'success');
                         updateWishlistCount();
                     } else {
-                        showToast('حدث خطأ أثناء إضافة المنتج إلى المفضلة', 'error');
+                        showToast('Error adding product to wishlist', 'error');
                     }
                 })
                 .fail(function() {
-                    showToast('حدث خطأ في الاتصال', 'error');
+                    showToast('Connection error', 'error');
                 });
         }
     });

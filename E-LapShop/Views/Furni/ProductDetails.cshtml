@@ -32,17 +32,8 @@
                     </div>
                     <div class="thumbnail-images">
                         <div class="row">
-                            <div class="col-3">
+                            <div class="col-12">
                                 <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded thumbnail-img active" onclick="changeMainImage(this.src)">
-                            </div>
-                            <div class="col-3">
-                                <img src="~/furni/images/product-2.png" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
-                            </div>
-                            <div class="col-3">
-                                <img src="~/furni/images/product-3.png" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
-                            </div>
-                            <div class="col-3">
-                                <img src="~/furni/images/product-1.png" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
                             </div>
                         </div>
                     </div>
@@ -72,8 +63,8 @@
                     </div>
 
                     <div class="product-price mb-4">
-                        <span class="current-price h3 fw-bold" style="color: #3b5d50;">$@Model.Price.ToString("F2")</span>
-                        <span class="original-price text-muted text-decoration-line-through ms-2">$@((Model.Price * 1.2m).ToString("F2"))</span>
+                        <span class="current-price h3 fw-bold" style="color: #3b5d50;">@Model.Price.ToString("F2") EGP</span>
+                        <span class="original-price text-muted text-decoration-line-through ms-2">@((Model.Price * 1.2m).ToString("F2")) EGP</span>
                         <span class="discount-badge badge ms-2" style="background-color: #3b5d50; color: white;">20% OFF</span>
                     </div>
 
@@ -125,17 +116,26 @@
                     <div class="product-actions mb-4">
                         <div class="row">
                             <div class="col-12 mb-3">
-                                @if (User.Identity?.IsAuthenticated == true)
+                                @if (Model.IsAvailable && Model.Stock > 0)
                                 {
-                                    <button class="btn btn-lg w-100 add-to-cart-btn" data-product-id="@Model.Id" style="background-color: #3b5d50; color: white; border: none;">
-                                        <i class="fas fa-shopping-cart me-2"></i>Add to Cart
-                                    </button>
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        <button class="btn btn-lg w-100 add-to-cart-btn" data-product-id="@Model.Id" style="background-color: #3b5d50; color: white; border: none;">
+                                            <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("Auth", "Account")" class="btn btn-lg w-100" style="background-color: #3b5d50; color: white; border: none;">
+                                            <i class="fas fa-shopping-cart me-2"></i>Login to Add to Cart
+                                        </a>
+                                    }
                                 }
                                 else
                                 {
-                                    <a href="@Url.Action("Auth", "Account")" class="btn btn-lg w-100" style="background-color: #3b5d50; color: white; border: none;">
-                                        <i class="fas fa-shopping-cart me-2"></i>Login to Add to Cart
-                                    </a>
+                                    <button class="btn btn-lg w-100" disabled style="background-color: #6c757d; color: white; border: none;">
+                                        <i class="fas fa-clock me-2"></i>Currently Unavailable - Available Soon
+                                    </button>
                                 }
                             </div>
                             <div class="col-12 mb-3">
@@ -151,11 +151,6 @@
                                         <i class="fas fa-heart me-2"></i>Login to Add to Wishlist
                                     </a>
                                 }
-                            </div>
-                            <div class="col-12">
-                                <button class="btn btn-lg w-100" onclick="contactSeller()" style="background-color: #6c757d; color: white; border: none;">
-                                    <i class="fas fa-phone me-2"></i>Contact Seller
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -222,7 +217,7 @@
                                 </ul>
                             </div>
                             <div class="col-md-4">
-                                <img src="~/furni/images/why-choose-us-img.jpg" alt="Product Details" class="img-fluid rounded">
+                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded">
                             </div>
                         </div>
                     </div>
@@ -357,43 +352,42 @@
         </div>
 
         <!-- Related Products -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <h3 class="mb-4">Related Products</h3>
-                <div class="row">
-                    <div class="col-12 col-md-4 col-lg-3 mb-4">
-                        <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 1 })">
-                            <img src="~/furni/images/product-1.png" class="img-fluid product-thumbnail">
-                            <h3 class="product-title">Nordic Chair</h3>
-                            <strong class="product-price">$50.00</strong>
-                            <span class="icon-cross">
-                                <img src="~/furni/images/cross.svg" class="img-fluid">
-                            </span>
-                        </a>
-                    </div>
-                    <div class="col-12 col-md-4 col-lg-3 mb-4">
-                        <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 2 })">
-                            <img src="~/furni/images/product-2.png" class="img-fluid product-thumbnail">
-                            <h3 class="product-title">Kruzo Aero Chair</h3>
-                            <strong class="product-price">$78.00</strong>
-                            <span class="icon-cross">
-                                <img src="~/furni/images/cross.svg" class="img-fluid">
-                            </span>
-                        </a>
-                    </div>
-                    <div class="col-12 col-md-4 col-lg-3 mb-4">
-                        <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = 3 })">
-                            <img src="~/furni/images/product-3.png" class="img-fluid product-thumbnail">
-                            <h3 class="product-title">Ergonomic Chair</h3>
-                            <strong class="product-price">$43.00</strong>
-                            <span class="icon-cross">
-                                <img src="~/furni/images/cross.svg" class="img-fluid">
-                            </span>
-                        </a>
+        @if (ViewBag.RelatedProducts != null && ((List<BLL.Models.ProductDtos.ProductDto>)ViewBag.RelatedProducts).Any())
+        {
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="mb-4">Related Products</h3>
+                </div>
+                <div class="col-12">
+                    <div class="row">
+                        @foreach (var relatedProduct in (List<BLL.Models.ProductDtos.ProductDto>)ViewBag.RelatedProducts)
+                        {
+                            <div class="col-12 col-md-4 col-lg-3 mb-4">
+                                <div class="product-item-wrapper position-relative">
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        <button class="btn btn-link position-absolute wishlist-btn-related" 
+                                                data-product-id="@relatedProduct.Id" 
+                                                style="top: 10px; right: 10px; z-index: 10; background: rgba(255,255,255,0.9); border-radius: 50%; width: 40px; height: 40px; padding: 0;">
+                                            <i class="fas fa-heart text-muted wishlist-icon" style="font-size: 1.2rem;"></i>
+                                        </button>
+                                    }
+                                    
+                                    <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = relatedProduct.Id })">
+                                        <img src="@relatedProduct.ImageUrl" class="img-fluid product-thumbnail">
+                                        <h3 class="product-title">@relatedProduct.Name</h3>
+                                        <strong class="product-price">@relatedProduct.Price.ToString("F2") EGP</strong>
+                                        <span class="icon-cross">
+                                            <i class="fas fa-plus"></i>
+                                        </span>
+                                    </a>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
-        </div>
+        }
     </div>
 </div>
 
@@ -463,6 +457,24 @@
     border-bottom-color: #3b5d50;
     color: #3b5d50;
 }
+
+.product-item-wrapper:hover .wishlist-btn-related {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.wishlist-btn-related:hover {
+    background: rgba(255,255,255,1) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.wishlist-icon.text-danger {
+    color: #dc3545 !important;
+}
+
+.wishlist-icon.text-muted {
+    color: #6c757d !important;
+}
 </style>
 
 <script>
@@ -526,14 +538,14 @@ $(document).ready(function() {
                     if (response.success) {
                         heartIcon.removeClass('text-danger').css('color', '#ccc');
                         $(this).html('<i class="fas fa-heart me-2" style="color: #ccc;"></i>Add to Wishlist');
-                        showToast('تم إزالة المنتج من المفضلة', 'success');
+                        showToast('تم إزالة المنتج من قائمة الأمنيات', 'success');
                         updateWishlistCount();
                     } else {
-                        showToast('حدث خطأ أثناء إزالة المنتج من المفضلة', 'error');
+                        showToast('خطأ في إزالة المنتج من قائمة الأمنيات', 'error');
                     }
                 }.bind(this))
                 .fail(function() {
-                    showToast('حدث خطأ في الاتصال', 'error');
+                    showToast('خطأ في الاتصال', 'error');
                 });
         } else {
             // Add to wishlist
@@ -542,14 +554,14 @@ $(document).ready(function() {
                     if (response.success) {
                         heartIcon.addClass('text-danger').css('color', '#dc3545');
                         $(this).html('<i class="fas fa-heart me-2 text-danger"></i>Remove from Wishlist');
-                        showToast('تم إضافة المنتج إلى المفضلة', 'success');
+                        showToast('تم إضافة المنتج إلى قائمة الأمنيات', 'success');
                         updateWishlistCount();
                     } else {
-                        showToast('حدث خطأ أثناء إضافة المنتج إلى المفضلة', 'error');
+                        showToast('خطأ في إضافة المنتج إلى قائمة الأمنيات', 'error');
                     }
                 }.bind(this))
                 .fail(function() {
-                    showToast('حدث خطأ في الاتصال', 'error');
+                    showToast('خطأ في الاتصال', 'error');
                 });
         }
     });
@@ -561,21 +573,81 @@ $(document).ready(function() {
         const productId = $(this).data('product-id');
         const quantity = parseInt($('#quantity').val()) || 1;
         
-        $.post('@Url.Action("AddToCart", "Cart")', { 
-            productId: productId,
-            quantity: quantity
-        })
-        .done(function(response) {
-            if (response.success) {
-                showToast('تم إضافة المنتج إلى عربة التسوق', 'success');
-                updateCartCount();
-            } else {
-                showToast('حدث خطأ أثناء إضافة المنتج إلى عربة التسوق', 'error');
+        $.ajax({
+            url: '@Url.Action("AddToCart", "Cart")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ 
+                ProductId: productId,
+                Quantity: quantity
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showToast(response.message || 'تم إضافة المنتج إلى عربة التسوق بنجاح!', 'success');
+                    updateCartCount();
+                } else {
+                    showToast(response.message || 'خطأ في إضافة المنتج إلى العربة', 'error');
+                }
+            },
+            error: function() {
+                showToast('خطأ في الاتصال', 'error');
             }
-        })
-        .fail(function() {
-            showToast('حدث خطأ في الاتصال', 'error');
         });
+    });
+
+    // Related products wishlist functionality
+    $('.wishlist-btn-related').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const productId = $(this).data('product-id');
+        const heartIcon = $(this).find('i');
+        const isInWishlist = heartIcon.hasClass('text-danger');
+        
+        if (isInWishlist) {
+            // Remove from wishlist
+            $.post('@Url.Action("RemoveFromWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.success) {
+                        heartIcon.removeClass('text-danger').addClass('text-muted');
+                        showToast('Product removed from wishlist', 'success');
+                        updateWishlistCount();
+                    } else {
+                        showToast('Error removing product from wishlist', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Connection error', 'error');
+                });
+        } else {
+            // Add to wishlist
+            $.post('@Url.Action("AddToWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.success) {
+                        heartIcon.removeClass('text-muted').addClass('text-danger');
+                        showToast('Product added to wishlist', 'success');
+                        updateWishlistCount();
+                    } else {
+                        showToast('Error adding product to wishlist', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Connection error', 'error');
+                });
+        }
+    });
+
+    // Load wishlist status for related products
+    $('.wishlist-btn-related').each(function() {
+        const productId = $(this).data('product-id');
+        const heartIcon = $(this).find('i');
+        
+        $.get('@Url.Action("IsInWishlist", "Wishlist")', { productId: productId })
+            .done(function(response) {
+                if (response.isInWishlist) {
+                    heartIcon.removeClass('text-muted').addClass('text-danger');
+                }
+            });
     });
 });
 

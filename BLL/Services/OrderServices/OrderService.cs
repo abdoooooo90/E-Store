@@ -36,9 +36,36 @@ namespace BLL.Services.OrderServices
         public async Task<OrderDto> CreateAsync(OrderCreateDto dto)
         {
             var order = _mapper.Map<Order>(dto);
+            
+            // Set default values
+            order.OrderDate = DateTime.Now;
+            order.Status = "Pending";
+            
+            // Update stock quantities for each item in the order
+            foreach (var item in dto.Items)
+            {
+                var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
+                if (product != null && product.Stock >= item.Quantity)
+                {
+                    product.Stock -= item.Quantity;
+                    _unitOfWork.Products.Update(product);
+                }
+                else
+                {
+                    // Not enough stock - return null to indicate failure
+                    return null;
+                }
+            }
+            
             _unitOfWork.Orders.Add(order);
-            await _unitOfWork.CompleteAsync();
-            return _mapper.Map<OrderDto>(order);
+            var result = await _unitOfWork.CompleteAsync();
+            
+            if (result > 0)
+            {
+                return _mapper.Map<OrderDto>(order);
+            }
+            
+            return null;
         }
 
         public async Task<bool> UpdateAsync(OrderUpdateDto dto)

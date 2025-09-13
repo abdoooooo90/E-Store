@@ -37,10 +37,13 @@
         <div class="col-md-3">
             <select class="form-select" id="categoryFilter">
                 <option value="">جميع الفئات</option>
-                <option value="chairs">كراسي</option>
-                <option value="tables">طاولات</option>
-                <option value="sofas">أرائك</option>
-                <option value="cabinets">خزائن</option>
+                @if (ViewBag.Categories != null)
+                {
+                    @foreach (var category in ViewBag.Categories)
+                    {
+                        <option value="@category.Name">@category.Name</option>
+                    }
+                }
             </select>
         </div>
         <div class="col-md-3">
@@ -100,7 +103,7 @@
                                 <span class="badge bg-info">@(product.CategoryName ?? "غير محدد")</span>
                             </td>
                             <td>
-                                <strong class="text-success">@product.Price.ToString("C")</strong>
+                                <strong class="text-success">@product.Price.ToString("C", new System.Globalization.CultureInfo("ar-EG"))</strong>
                             </td>
                             <td>
                                 <span class="badge @(product.Stock > 10 ? "bg-success" : product.Stock > 0 ? "bg-warning" : "bg-danger")">
@@ -194,18 +197,23 @@
 
     function filterTable() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+        const categoryFilter = document.getElementById('categoryFilter').value;
         const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
         
         const rows = document.querySelectorAll('tbody tr');
         
         rows.forEach(row => {
+            // تجاهل الصف إذا كان يحتوي على رسالة "لا توجد منتجات"
+            if (row.cells.length === 1 && row.cells[0].getAttribute('colspan')) {
+                return;
+            }
+            
             const productName = row.cells[1]?.textContent.toLowerCase() || '';
-            const category = row.cells[2]?.textContent.toLowerCase() || '';
+            const categoryBadge = row.cells[2]?.querySelector('.badge')?.textContent.trim() || '';
             const status = row.cells[5]?.textContent.toLowerCase() || '';
             
             const matchesSearch = productName.includes(searchTerm);
-            const matchesCategory = !categoryFilter || category.includes(categoryFilter);
+            const matchesCategory = !categoryFilter || categoryBadge === categoryFilter;
             const matchesStatus = !statusFilter || 
                 (statusFilter === 'active' && status.includes('متاح')) ||
                 (statusFilter === 'inactive' && status.includes('نفد'));
@@ -216,6 +224,9 @@
                 row.style.display = 'none';
             }
         });
+        
+        // تحديث الإحصائيات بناءً على المنتجات المرئية
+        updateStats();
     }
 
     function clearFilters() {
@@ -223,6 +234,45 @@
         document.getElementById('categoryFilter').value = '';
         document.getElementById('statusFilter').value = '';
         filterTable();
+    }
+
+    function updateStats() {
+        const visibleRows = document.querySelectorAll('tbody tr[style=""], tbody tr:not([style])');
+        let totalVisible = 0;
+        let availableCount = 0;
+        let lowStockCount = 0;
+        let outOfStockCount = 0;
+        
+        visibleRows.forEach(row => {
+            // تجاهل الصف إذا كان يحتوي على رسالة "لا توجد منتجات"
+            if (row.cells.length === 1 && row.cells[0].getAttribute('colspan')) {
+                return;
+            }
+            
+            totalVisible++;
+            const status = row.cells[5]?.textContent.toLowerCase() || '';
+            const stockBadge = row.cells[4]?.querySelector('.badge');
+            
+            if (status.includes('متاح')) {
+                availableCount++;
+                
+                // فحص المخزون المنخفض
+                if (stockBadge && stockBadge.classList.contains('bg-warning')) {
+                    lowStockCount++;
+                }
+            } else if (status.includes('نفد')) {
+                outOfStockCount++;
+            }
+        });
+        
+        // تحديث الإحصائيات في الواجهة
+        const statsCards = document.querySelectorAll('.stats-card h5');
+        if (statsCards.length >= 4) {
+            statsCards[0].textContent = totalVisible;
+            statsCards[1].textContent = availableCount;
+            statsCards[2].textContent = lowStockCount;
+            statsCards[3].textContent = outOfStockCount;
+        }
     }
 
     function confirmDelete(productId, productName) {

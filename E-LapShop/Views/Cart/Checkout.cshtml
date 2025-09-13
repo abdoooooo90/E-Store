@@ -1,244 +1,270 @@
-@model BLL.Models.OrderDtos.OrderCreateDto
-
 @{
     ViewBag.Title = "Checkout";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_FurniLayout.cshtml";
 }
 
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4"><i class="fas fa-credit-card"></i> Checkout</h2>
-            
-            <!-- Progress Steps -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="progress" style="height: 3px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-2">
-                        <small class="text-success"><i class="fas fa-check-circle"></i> Cart</small>
-                        <small class="text-success"><i class="fas fa-check-circle"></i> Checkout</small>
-                        <small class="text-muted">Payment</small>
-                        <small class="text-muted">Confirmation</small>
-                    </div>
+<!-- Start Hero Section -->
+<div class="hero">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-lg-5">
+                <div class="intro-excerpt">
+                    <h1>Checkout</h1>
                 </div>
+            </div>
+            <div class="col-lg-7">
             </div>
         </div>
     </div>
-    
-    <form asp-controller="Order" asp-action="PlaceOrder" method="post" id="checkoutForm">
-        <div class="row">
-            <!-- Order Details Form -->
-            <div class="col-lg-8">
-                <!-- Shipping Address -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-shipping-fast"></i> Shipping Address</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="ShippingAddress.FirstName" class="form-label">First Name *</label>
-                                <input asp-for="ShippingAddress.FirstName" class="form-control" required>
-                                <span asp-validation-for="ShippingAddress.FirstName" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="ShippingAddress.LastName" class="form-label">Last Name *</label>
-                                <input asp-for="ShippingAddress.LastName" class="form-control" required>
-                                <span asp-validation-for="ShippingAddress.LastName" class="text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="ShippingAddress.Street" class="form-label">Street Address *</label>
-                            <input asp-for="ShippingAddress.Street" class="form-control" required>
-                            <span asp-validation-for="ShippingAddress.Street" class="text-danger"></span>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="ShippingAddress.City" class="form-label">City *</label>
-                                <input asp-for="ShippingAddress.City" class="form-control" required>
-                                <span asp-validation-for="ShippingAddress.City" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label asp-for="ShippingAddress.State" class="form-label">State *</label>
-                                <input asp-for="ShippingAddress.State" class="form-control" required>
-                                <span asp-validation-for="ShippingAddress.State" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label asp-for="ShippingAddress.ZipCode" class="form-label">ZIP Code *</label>
-                                <input asp-for="ShippingAddress.ZipCode" class="form-control" required>
-                                <span asp-validation-for="ShippingAddress.ZipCode" class="text-danger"></span>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="ShippingAddress.Country" class="form-label">Country *</label>
-                            <select asp-for="ShippingAddress.Country" class="form-select" required>
-                                <option value="">Select Country</option>
-                                <option value="US">United States</option>
-                                <option value="CA">Canada</option>
-                                <option value="UK">United Kingdom</option>
-                                <option value="AU">Australia</option>
-                                <option value="DE">Germany</option>
-                                <option value="FR">France</option>
-                            </select>
-                            <span asp-validation-for="ShippingAddress.Country" class="text-danger"></span>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="ShippingAddress.Phone" class="form-label">Phone Number</label>
-                            <input asp-for="ShippingAddress.Phone" class="form-control" type="tel">
-                            <span asp-validation-for="ShippingAddress.Phone" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
+</div>
+<!-- End Hero Section -->
 
-                <!-- Payment Method -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-credit-card"></i> Payment Method</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="PaymentMethod" id="creditCard" value="CreditCard" checked>
-                                <label class="form-check-label" for="creditCard">
-                                    <i class="fas fa-credit-card"></i> Credit/Debit Card
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="PaymentMethod" id="paypal" value="PayPal">
-                                <label class="form-check-label" for="paypal">
-                                    <i class="fab fa-paypal"></i> PayPal
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="PaymentMethod" id="cashOnDelivery" value="CashOnDelivery">
-                                <label class="form-check-label" for="cashOnDelivery">
-                                    <i class="fas fa-money-bill-wave"></i> Cash on Delivery
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Credit Card Details -->
-                        <div id="creditCardDetails">
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label for="cardNumber" class="form-label">Card Number *</label>
-                                    <input type="text" id="cardNumber" name="CardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="expiryDate" class="form-label">Expiry Date *</label>
-                                    <input type="text" id="expiryDate" name="ExpiryDate" class="form-control" placeholder="MM/YY" maxlength="5">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="cvv" class="form-label">CVV *</label>
-                                    <input type="text" id="cvv" name="CVV" class="form-control" placeholder="123" maxlength="4">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="cardHolderName" class="form-label">Cardholder Name *</label>
-                                <input type="text" id="cardHolderName" name="CardHolderName" class="form-control" placeholder="John Doe">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Notes -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Order Notes (Optional)</h5>
-                    </div>
-                    <div class="card-body">
-                        <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Any special instructions for your order..."></textarea>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Order Summary -->
-            <div class="col-lg-4">
-                <div class="card sticky-top" style="top: 20px;">
-                    <div class="card-header">
-                        <h5 class="mb-0">Order Summary</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Cart Items Summary -->
-                        <div class="mb-3">
-                            <h6>Items in your cart:</h6>
-                            @if (ViewBag.CartItems != null)
-                            {
-                                @foreach (var item in (IEnumerable<BLL.Models.CartItemDtos.CartItemDto>)ViewBag.CartItems)
-                                {
-                                    <div class="d-flex justify-content-between align-items-center mb-2 small">
-                                        <div>
-                                            <span>@item.ProductName</span>
-                                            <small class="text-muted"> x@item.Quantity</small>
-                                        </div>
-                                        <span>$@((item.ProductPrice * item.Quantity).ToString("F2"))</span>
-                                    </div>
-                                }
-                            }
-                        </div>
-                        
-                        <hr>
-                        
-                        <!-- Pricing Breakdown -->
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal:</span>
-                            <span>$@ViewBag.CartTotal.ToString("F2")</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Shipping:</span>
-                            <span class="text-success">Free</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Tax (10%):</span>
-                            <span>$@((ViewBag.CartTotal * 0.1m).ToString("F2"))</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-3">
-                            <strong>Total:</strong>
-                            <strong class="text-success">$@((ViewBag.CartTotal * 1.1m).ToString("F2"))</strong>
-                        </div>
-
-                        <!-- Place Order Button -->
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg" id="placeOrderBtn">
-                                <i class="fas fa-lock"></i> Place Order
-                            </button>
-                            <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to Cart
-                            </a>
-                        </div>
-
-                        <!-- Security Notice -->
-                        <div class="mt-3 text-center">
-                            <small class="text-muted">
-                                <i class="fas fa-shield-alt"></i> Your payment information is secure and encrypted
-                            </small>
-                        </div>
-                    </div>
-                </div>
+<div class="untree_co-section before-footer-section">
+    <div class="container">
+        <!-- Returning customer login link -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <p class="text-muted">Returning customer? <a href="#" class="text-decoration-underline">Click here to login</a></p>
             </div>
         </div>
-    </form>
+    
+        <form asp-controller="Cart" asp-action="PlaceOrder" method="post" id="checkoutForm">
+            <div class="row">
+                <!-- Billing Details -->
+                <div class="col-lg-7">
+                    <div class="mb-5">
+                        <h3 class="h4 text-black mb-4">Billing Details</h3>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-black">Full Name <span class="text-danger">*</span></label>
+                                <input name="FullName" type="text" class="form-control" placeholder="Enter your full name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-black">Phone Number <span class="text-danger">*</span></label>
+                                <input name="Phone" type="tel" class="form-control" placeholder="Enter your phone number" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="text-black">Email Address <span class="text-danger">*</span></label>
+                                <input name="Email" type="email" class="form-control" placeholder="Enter your email address" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="text-black">Delivery Address <span class="text-danger">*</span></label>
+                                <textarea name="shippingAddress" class="form-control" rows="3" placeholder="Enter your complete delivery address" required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-black">City <span class="text-danger">*</span></label>
+                                <input name="City" type="text" class="form-control" placeholder="Enter your city" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-black">Country <span class="text-danger">*</span></label>
+                                <select name="Country" class="form-control" required>
+                                    <option value="">Select Country</option>
+                                    <option value="EG" selected>Egypt</option>
+                                    <option value="SA">Saudi Arabia</option>
+                                    <option value="AE">UAE</option>
+                                    <option value="US">United States</option>
+                                    <option value="UK">United Kingdom</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-4">
+                                <label class="text-black">Order Notes (Optional)</label>
+                                <textarea name="Notes" class="form-control" rows="3" placeholder="Any special instructions for your order..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method Selection -->
+                        <div class="mb-5">
+                            <h3 class="h4 text-black mb-4">Payment Method</h3>
+                            <div class="payment-methods">
+                                <div class="payment-option mb-3 p-3 border rounded" data-payment="cash">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="paymentMethod" id="cashOnDelivery" value="CashOnDelivery" checked>
+                                        <label class="form-check-label d-flex align-items-center" for="cashOnDelivery">
+                                            <i class="fas fa-money-bill-wave text-success me-2"></i>
+                                            <div>
+                                                <strong>Cash on Delivery</strong>
+                                                <small class="d-block text-muted">Pay when you receive your order</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="payment-option mb-3 p-3 border rounded" data-payment="card">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" value="CreditCard">
+                                        <label class="form-check-label d-flex align-items-center" for="creditCard">
+                                            <i class="fas fa-credit-card text-primary me-2"></i>
+                                            <div>
+                                                <strong>Credit/Debit Card</strong>
+                                                <small class="d-block text-muted">Pay securely with your card</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    
+                                    <!-- Credit Card Details -->
+                                    <div id="creditCardDetails" class="mt-3" style="display: none;">
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <label class="text-black">Card Number <span class="text-danger">*</span></label>
+                                                <input type="text" id="cardNumber" name="CardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="text-black">Expiry Date <span class="text-danger">*</span></label>
+                                                <input type="text" id="expiryDate" name="ExpiryDate" class="form-control" placeholder="MM/YY" maxlength="5">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="text-black">CVV <span class="text-danger">*</span></label>
+                                                <input type="text" id="cvv" name="CVV" class="form-control" placeholder="123" maxlength="4">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <label class="text-black">Cardholder Name <span class="text-danger">*</span></label>
+                                                <input type="text" id="cardHolderName" name="CardHolderName" class="form-control" placeholder="Name as on card">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="payment-option mb-3 p-3 border rounded" data-payment="bank">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="paymentMethod" id="bankTransfer" value="BankTransfer">
+                                        <label class="form-check-label d-flex align-items-center" for="bankTransfer">
+                                            <i class="fas fa-university text-info me-2"></i>
+                                            <div>
+                                                <strong>Bank Transfer</strong>
+                                                <small class="d-block text-muted">Transfer directly to our bank account</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    
+                                    <!-- Bank Transfer Details -->
+                                    <div id="bankTransferDetails" class="mt-3" style="display: none;">
+                                        <div class="alert alert-info">
+                                            <h6><i class="fas fa-info-circle"></i> Bank Transfer Instructions</h6>
+                                            <p class="mb-2"><strong>Bank Name:</strong> Furni Store Bank</p>
+                                            <p class="mb-2"><strong>Account Number:</strong> 1234567890</p>
+                                            <p class="mb-2"><strong>IBAN:</strong> EG380019000100000001234567890</p>
+                                            <p class="mb-2"><strong>Swift Code:</strong> FURNIEGCX</p>
+                                            <p class="mb-0"><small>Please use your order number as reference when making the transfer.</small></p>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <label class="text-black">Transfer Reference Number <span class="text-danger">*</span></label>
+                                                <input type="text" name="TransferReference" class="form-control" placeholder="Enter your transfer reference number">
+                                                <small class="text-muted">Enter the reference number from your bank transfer receipt</small>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <label class="text-black">Transfer Date <span class="text-danger">*</span></label>
+                                                <input type="date" name="TransferDate" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Your Order -->
+                <div class="col-lg-5">
+
+                    <!-- Your Order -->
+                    <div class="mb-5">
+                        <h3 class="h4 text-black mb-4">Your Order</h3>
+                        <div class="p-3 p-lg-5 border">
+                            <table class="table site-block-order-table mb-5">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (ViewBag.CartItems != null)
+                                    {
+                                        @foreach (var item in (IEnumerable<BLL.Models.CartItemDtos.CartItemDto>)ViewBag.CartItems)
+                                        {
+                                            <tr>
+                                                <td>@item.ProductName <strong class="mx-2">x</strong> @item.Quantity</td>
+                                                <td>@((item.ProductPrice * item.Quantity).ToString("F2")) EGP</td>
+                                            </tr>
+                                        }
+                                    }
+                                    <tr>
+                                        <td class="text-black font-weight-bold"><strong>Cart Subtotal</strong></td>
+                                        <td class="text-black">@ViewBag.CartTotal.ToString("F2") EGP</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-black font-weight-bold"><strong>Order Total</strong></td>
+                                        <td class="text-black font-weight-bold"><strong>@ViewBag.CartTotal.ToString("F2") EGP</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+
+                            <div class="form-group">
+                                <button class="btn btn-black btn-lg py-3 btn-block" type="submit">Place Order</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Payment method toggle
-            $('input[name="PaymentMethod"]').change(function() {
-                if ($(this).val() === 'CreditCard') {
-                    $('#creditCardDetails').show();
+            // Payment method selection visual feedback and show/hide details
+            $('.payment-option').on('click', function() {
+                $('.payment-option').removeClass('border-primary bg-light');
+                $(this).addClass('border-primary bg-light');
+                $(this).find('input[type="radio"]').prop('checked', true);
+                
+                // Hide all payment details
+                $('#creditCardDetails, #bankTransferDetails').hide();
+                
+                // Show relevant payment details
+                let selectedPayment = $(this).find('input[type="radio"]').val();
+                if (selectedPayment === 'CreditCard') {
+                    $('#creditCardDetails').slideDown();
+                    // Make credit card fields required
                     $('#creditCardDetails input').prop('required', true);
-                } else {
-                    $('#creditCardDetails').hide();
+                    $('#bankTransferDetails input').prop('required', false);
+                } else if (selectedPayment === 'BankTransfer') {
+                    $('#bankTransferDetails').slideDown();
+                    // Make bank transfer fields required
+                    $('#bankTransferDetails input').prop('required', true);
                     $('#creditCardDetails input').prop('required', false);
+                } else {
+                    // Cash on delivery - no additional fields required
+                    $('#creditCardDetails input, #bankTransferDetails input').prop('required', false);
                 }
             });
 
+            // Initialize first payment option as selected
+            $('.payment-option:first').addClass('border-primary bg-light');
+            
             // Card number formatting
             $('#cardNumber').on('input', function() {
                 let value = $(this).val().replace(/\s/g, '').replace(/[^0-9]/gi, '');
@@ -260,43 +286,135 @@
                 $(this).val($(this).val().replace(/[^0-9]/g, ''));
             });
 
-            // Form validation
+            // Form validation and submission
             $('#checkoutForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Basic validation
                 let isValid = true;
-                let paymentMethod = $('input[name="PaymentMethod"]:checked').val();
+                let requiredFields = ['FullName', 'Phone', 'Email', 'shippingAddress', 'City'];
+                
+                // Get selected payment method
+                let selectedPayment = $('input[name="paymentMethod"]:checked').val();
+                
+                // Add payment-specific required fields
+                if (selectedPayment === 'CreditCard') {
+                    requiredFields.push('CardNumber', 'ExpiryDate', 'CVV', 'CardHolderName');
+                } else if (selectedPayment === 'BankTransfer') {
+                    requiredFields.push('TransferReference', 'TransferDate');
+                }
+                
+                requiredFields.forEach(function(field) {
+                    let input = $(`[name="${field}"], #${field}`);
+                    if (!input.val().trim()) {
+                        input.addClass('is-invalid');
+                        isValid = false;
+                    } else {
+                        input.removeClass('is-invalid');
+                    }
+                });
 
-                if (paymentMethod === 'CreditCard') {
+                // Additional credit card validation
+                if (selectedPayment === 'CreditCard') {
                     let cardNumber = $('#cardNumber').val().replace(/\s/g, '');
                     let expiryDate = $('#expiryDate').val();
                     let cvv = $('#cvv').val();
-                    let cardHolderName = $('#cardHolderName').val();
 
                     if (cardNumber.length < 13 || cardNumber.length > 19) {
-                        alert('Please enter a valid card number');
+                        $('#cardNumber').addClass('is-invalid');
                         isValid = false;
                     }
                     if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
-                        alert('Please enter a valid expiry date (MM/YY)');
+                        $('#expiryDate').addClass('is-invalid');
                         isValid = false;
                     }
                     if (cvv.length < 3 || cvv.length > 4) {
-                        alert('Please enter a valid CVV');
-                        isValid = false;
-                    }
-                    if (cardHolderName.trim() === '') {
-                        alert('Please enter the cardholder name');
+                        $('#cvv').addClass('is-invalid');
                         isValid = false;
                     }
                 }
 
                 if (!isValid) {
-                    e.preventDefault();
-                    return false;
+                    alert('Please fill in all required fields correctly');
+                    return;
                 }
 
                 // Show loading state
-                $('#placeOrderBtn').html('<i class="fas fa-spinner fa-spin"></i> Processing...').prop('disabled', true);
+                $('button[type="submit"]').html('<i class="fas fa-spinner fa-spin"></i> Processing Order...').prop('disabled', true);
+
+                // Prepare form data
+                let formData = {
+                    shippingAddress: $('textarea[name="shippingAddress"]').val(),
+                    paymentMethod: selectedPayment
+                };
+
+                // Add payment-specific data
+                if (selectedPayment === 'CreditCard') {
+                    formData.cardNumber = $('#cardNumber').val();
+                    formData.expiryDate = $('#expiryDate').val();
+                    formData.cvv = $('#cvv').val();
+                    formData.cardHolderName = $('#cardHolderName').val();
+                } else if (selectedPayment === 'BankTransfer') {
+                    formData.transferReference = $('[name="TransferReference"]').val();
+                    formData.transferDate = $('[name="TransferDate"]').val();
+                }
+
+                // Submit order via AJAX
+                $.ajax({
+                    url: '@Url.Action("PlaceOrder", "Cart")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            let message = 'Order placed successfully! Order ID: ' + response.orderId;
+                            if (selectedPayment === 'BankTransfer') {
+                                message += '\n\nPlease complete your bank transfer using the provided details and reference your order ID.';
+                            }
+                            alert(message);
+                            window.location.href = '@Url.Action("OrderConfirmation", "Cart")/' + response.orderId;
+                        } else {
+                            alert('Error: ' + response.message);
+                            $('button[type="submit"]').html('Place Order').prop('disabled', false);
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while placing the order. Please try again.');
+                        $('button[type="submit"]').html('Place Order').prop('disabled', false);
+                    }
+                });
+            });
+
+            // Remove validation error on input
+            $('input, textarea, select').on('input change', function() {
+                $(this).removeClass('is-invalid');
             });
         });
+
     </script>
+
+    <style>
+        .payment-option {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-option:hover {
+            border-color: #3b5d50 !important;
+            background-color: #f8f9fa;
+        }
+        
+        .payment-option.border-primary {
+            border-color: #3b5d50 !important;
+            background-color: #f0f8f0;
+        }
+        
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+        
+        .form-check-input:checked {
+            background-color: #3b5d50;
+            border-color: #3b5d50;
+        }
+    </style>
 }

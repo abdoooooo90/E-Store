@@ -46,7 +46,7 @@
                                     <p class="text-muted mb-2">@item.ProductBrand</p>
                                     <div class="mt-auto">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h4 class="text-success mb-0">$@item.ProductPrice.ToString("F2")</h4>
+                                            <h4 class="text-success mb-0">@item.ProductPrice.ToString("F2") EGP</h4>
                                             <span class="badge @(item.ProductStock > 0 ? "bg-success" : "bg-danger")">
                                                 @(item.ProductStock > 0 ? "In Stock" : "Out of Stock")
                                             </span>
@@ -102,7 +102,7 @@
                             <div class="card-body text-center">
                                 <h5>Wishlist Summary</h5>
                                 <p class="mb-2">Total Items: <strong>@Model.Count()</strong></p>
-                                <p class="mb-0">Total Value: <strong>$@Model.Sum(x => x.ProductPrice).ToString("F2")</strong></p>
+                                <p class="mb-0">Total Value: <strong>@Model.Sum(x => x.ProductPrice).ToString("F2") EGP</strong></p>
                             </div>
                         </div>
                     </div>

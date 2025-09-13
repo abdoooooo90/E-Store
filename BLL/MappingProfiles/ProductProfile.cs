@@ -28,7 +28,8 @@ namespace BLL.MappingProfiles
             CreateMap<Product, ProductUpdateDto>()
                 .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.Stock))
                 .ReverseMap()
-                .ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.StockQuantity));
+                .ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.StockQuantity))
+                .ForMember(dest => dest.Category, opt => opt.Ignore());
 
             CreateMap<Product, ProductDetailsDto>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))

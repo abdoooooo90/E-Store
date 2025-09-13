@@ -101,9 +101,9 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="align-middle">$@item.Price.ToString("F2")</td>
+                                        <td class="align-middle">@item.Price.ToString("F2") EGP</td>
                                         <td class="align-middle">@item.Quantity</td>
-                                        <td class="align-middle fw-bold">$@((item.Price * item.Quantity).ToString("F2"))</td>
+                                        <td class="align-middle fw-bold">@((item.Price * item.Quantity).ToString("F2")) EGP</td>
                                     </tr>
                                 }
                             </tbody>

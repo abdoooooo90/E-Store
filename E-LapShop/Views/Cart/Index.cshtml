@@ -2,163 +2,472 @@
 
 @{
     ViewBag.Title = "Shopping Cart";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_FurniLayout.cshtml";
 }
 
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
-                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
-                    <i class="fas fa-shopping-bag"></i> Continue Shopping
-                </a>
+<!-- Start Hero Section -->
+<div class="hero">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-lg-5">
+                <div class="intro-excerpt">
+                    <h1>Cart</h1>
+                </div>
             </div>
-
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @TempData["Error"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            @if (Model != null && Model.Any())
-            {
-                <div class="row">
-                    <div class="col-lg-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Cart Items (@Model.Count() items)</h5>
-                            </div>
-                            <div class="card-body p-0">
-                                @foreach (var item in Model)
-                                {
-                                    <div class="row align-items-center p-3 border-bottom">
-                                        <div class="col-md-2">
-                                            <img src="@(!string.IsNullOrEmpty(item.ProductImageUrl) ? item.ProductImageUrl : "https://dummyimage.com/100x100/dee2e6/6c757d.jpg")" 
-                                                 class="img-fluid rounded" alt="@item.ProductName" style="height: 80px; object-fit: cover;">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <h6 class="mb-1">@item.ProductName</h6>
-                                            <small class="text-muted">@item.ProductBrand</small>
-                                            <div class="mt-1">
-                                                <span class="badge @(item.ProductStock > 0 ? "bg-success" : "bg-danger")">
-                                                    @(item.ProductStock > 0 ? "In Stock" : "Out of Stock")
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-2 text-center">
-                                            <strong>$@item.ProductPrice.ToString("F2")</strong>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <form asp-action="UpdateQuantity" method="post" class="d-flex align-items-center">
-                                                <input type="hidden" name="id" value="@item.Id" />
-                                                <input type="number" name="quantity" value="@item.Quantity" min="1" max="@item.ProductStock" 
-                                                       class="form-control form-control-sm me-2" style="width: 70px;" 
-                                                       onchange="this.form.submit()">
-                                            </form>
-                                        </div>
-                                        <div class="col-md-2 text-center">
-                                            <div class="fw-bold text-success">$@((item.ProductPrice * item.Quantity).ToString("F2"))</div>
-                                            <form asp-action="Remove" method="post" class="d-inline mt-1" 
-                                                  onsubmit="return confirm('Remove this item from cart?');">
-                                                <input type="hidden" name="id" value="@item.Id" />
-                                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                        
-                        <div class="mt-3">
-                            <form asp-action="Clear" method="post" class="d-inline" 
-                                  onsubmit="return confirm('Are you sure you want to clear your entire cart?');">
-                                <button type="submit" class="btn btn-outline-warning">
-                                    <i class="fas fa-trash-alt"></i> Clear Cart
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <div class="col-lg-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Order Summary</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Subtotal (@Model.Count() items):</span>
-                                    <span>$@ViewBag.CartTotal.ToString("F2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Shipping:</span>
-                                    <span class="text-success">Free</span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Tax:</span>
-                                    <span>$@((ViewBag.CartTotal * 0.1m).ToString("F2"))</span>
-                                </div>
-                                <hr>
-                                <div class="d-flex justify-content-between mb-3">
-                                    <strong>Total:</strong>
-                                    <strong class="text-success">$@((ViewBag.CartTotal * 1.1m).ToString("F2"))</strong>
-                                </div>
-                                
-                                <div class="d-grid gap-2">
-                                    <a asp-action="Checkout" class="btn btn-success btn-lg">
-                                        <i class="fas fa-credit-card"></i> Proceed to Checkout
-                                    </a>
-                                    <a asp-controller="Wishlist" asp-action="Index" class="btn btn-outline-secondary">
-                                        <i class="fas fa-heart"></i> View Wishlist
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card mt-3">
-                            <div class="card-body text-center">
-                                <h6>Need Help?</h6>
-                                <p class="small text-muted mb-2">Contact our customer service</p>
-                                <button class="btn btn-outline-info btn-sm">
-                                    <i class="fas fa-phone"></i> Call Support
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <div class="card">
-                        <div class="card-body">
-                            <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
-                            <h3>Your Cart is Empty</h3>
-                            <p class="text-muted mb-4">Add some products to your cart to get started!</p>
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                                <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg me-md-2">
-                                    <i class="fas fa-shopping-bag"></i> Start Shopping
-                                </a>
-                                <a asp-controller="Wishlist" asp-action="Index" class="btn btn-outline-danger btn-lg">
-                                    <i class="fas fa-heart"></i> View Wishlist
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+            <div class="col-lg-7">
+            </div>
         </div>
     </div>
 </div>
+<!-- End Hero Section -->
+
+<div class="untree_co-section before-footer-section">
+    <div class="container">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="row mb-5">
+                <form class="col-md-12" method="post">
+                    <div class="site-blocks-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="product-thumbnail">Image</th>
+                                    <th class="product-name">Product</th>
+                                    <th class="product-price">Price</th>
+                                    <th class="product-quantity">Quantity</th>
+                                    <th class="product-total">Total</th>
+                                    <th class="product-remove">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="product-thumbnail">
+                                            <img src="@(!string.IsNullOrEmpty(item.ProductImageUrl) ? item.ProductImageUrl : "~/furni/images/product-1.png")" 
+                                                 alt="@item.ProductName" class="img-fluid" style="width: 80px; height: 80px; object-fit: cover;">
+                                        </td>
+                                        <td class="product-name">
+                                            <h2 class="h5 text-black">@item.ProductName</h2>
+                                        </td>
+                                        <td>@item.ProductPrice.ToString("F2") EGP</td>
+                                        <td>
+                                            <div class="input-group mb-3 d-flex align-items-center quantity-container" style="max-width: 120px;">
+                                                <div class="input-group-prepend">
+                                                    <button class="btn btn-outline-black decrease" type="button" data-item-id="@item.Id">&minus;</button>
+                                                </div>
+                                                <input type="text" class="form-control text-center quantity-amount" value="@item.Quantity" 
+                                                       placeholder="" aria-label="Example text with button addon" 
+                                                       aria-describedby="button-addon1" readonly>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-black increase" type="button" data-item-id="@item.Id">&plus;</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="item-total">@((item.ProductPrice * item.Quantity).ToString("F2")) EGP</td>
+                                        <td>
+                                            <button type="button" class="btn btn-black btn-sm remove-item" data-item-id="@item.Id">X</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-black btn-sm btn-block">Continue Shopping</a>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-black btn-sm btn-block" onclick="updateCart()">Update Cart</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupon Section -->
+                    <div class="row mb-5">
+                        <div class="col-md-12">
+                            <div class="coupon-section p-4" style="background-color: #f8f9fa; border-radius: 8px;">
+                                <h4 class="mb-3 text-dark fw-bold">Coupon</h4>
+                                <p class="text-muted mb-4">Enter your coupon code if you have one.</p>
+                                
+                                <div class="d-flex gap-3">
+                                    <input type="text" class="form-control" id="coupon-code" 
+                                           placeholder="Coupon Code" 
+                                           style="border: 1px solid #dee2e6; border-radius: 25px; padding: 12px 20px; flex: 1;">
+                                    <button class="btn px-4 py-2" type="button" onclick="applyCoupon()" 
+                                            style="background-color: #2f2f2f; color: white; border-radius: 25px; white-space: nowrap; border: none;">
+                                        Apply Coupon
+                                    </button>
+                                </div>
+                                
+                                <div id="coupon-message" class="mt-3" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 pl-5">
+                    <div class="row justify-content-end">
+                        <div class="col-md-7">
+                            <div class="row">
+                                <div class="col-md-12 text-right border-bottom mb-5">
+                                    <h3 class="text-black h4 text-uppercase">Cart Totals</h3>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <span class="text-black">Subtotal</span>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <strong class="text-black" id="cart-subtotal">@Model.Sum(x => x.Total).ToString("F2") EGP</strong>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3" id="discount-row" style="display: none;">
+                                <div class="col-md-6">
+                                    <span class="text-black">Discount</span>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <strong class="text-success" id="discount-amount">-0.00 EGP</strong>
+                                </div>
+                            </div>
+
+                            <div class="row mb-5">
+                                <div class="col-md-6">
+                                    <span class="text-black">Total</span>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <strong class="text-black" id="cart-total">@Model.Sum(x => x.Total).ToString("F2") EGP</strong>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <a href="@Url.Action("Checkout", "Cart")" class="btn btn-black btn-lg py-3 btn-block">Proceed To Checkout</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-4">
+                            <h3>Your Cart is Empty</h3>
+                            <p class="lead">Add some products to your cart to get started!</p>
+                        </div>
+                        <div>
+                            <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-black btn-sm">Start Shopping</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize event handlers with delegation
+    initializeQuantityHandlers();
+});
+
+function updateQuantity(itemId, quantity, quantityInput) {
+    $.ajax({
+        url: '@Url.Action("UpdateQuantity", "Cart")',
+        type: 'POST',
+        data: {
+            id: itemId,
+            quantity: quantity
+        },
+        success: function(response) {
+            if (response.success) {
+                quantityInput.val(quantity);
+                updateCartTotals();
+                updateCartCount();
+            } else {
+                alert('Error updating quantity: ' + response.message);
+                // Revert to original quantity on error
+                location.reload();
+            }
+        },
+        error: function() {
+            alert('Error updating quantity');
+            // Revert to original quantity on error
+            location.reload();
+        }
+    });
+}
+
+function removeItem(itemId) {
+    $.ajax({
+        url: '@Url.Action("Remove", "Cart")',
+        type: 'POST',
+        data: {
+            id: itemId
+        },
+        success: function(response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert('Error removing item: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error removing item');
+        }
+    });
+}
+
+function updateCartTotals() {
+    var subtotal = 0;
+    
+    $('tbody tr').each(function() {
+        var quantity = parseInt($(this).find('.quantity-amount').val());
+        var priceText = $(this).find('td:nth-child(3)').text().replace('EGP', '').trim();
+        var price = parseFloat(priceText);
+        var itemTotal = quantity * price;
+        
+        $(this).find('.item-total').text(itemTotal.toFixed(2) + ' EGP');
+        subtotal += itemTotal;
+    });
+    
+    $('#cart-subtotal').text(subtotal.toFixed(2) + ' EGP');
+    
+    // Apply discount if any
+    var discountAmount = parseFloat($('#discount-amount').text().replace('-', '').replace('EGP', '').trim()) || 0;
+    var total = subtotal - discountAmount;
+    
+    $('#cart-total').text(total.toFixed(2) + ' EGP');
+}
+
+function updateCart() {
+    // Simple reload to ensure data consistency
+    location.reload();
+}
+
+// Simple and reliable quantity handlers
+function initializeQuantityHandlers() {
+    // Clear any existing handlers
+    $('.increase, .decrease, .remove-item').off('click');
+    
+    // Increase quantity handler
+    $('.increase').on('click', function() {
+        var button = $(this);
+        var itemId = button.data('item-id');
+        var quantityInput = button.closest('.quantity-container').find('.quantity-amount');
+        var currentQuantity = parseInt(quantityInput.val());
+        
+        // Prevent multiple clicks
+        if (button.prop('disabled')) return;
+        button.prop('disabled', true);
+        
+        // Calculate new quantity
+        var newQuantity = currentQuantity + 1;
+        
+        // Update server
+        $.post('@Url.Action("UpdateQuantity", "Cart")', {
+            id: itemId,
+            quantity: newQuantity
+        })
+        .done(function(response) {
+            if (response.success) {
+                quantityInput.val(newQuantity);
+                updateCartTotals();
+                updateCartCount();
+            } else {
+                alert('خطأ في تحديث الكمية');
+            }
+        })
+        .fail(function() {
+            alert('خطأ في الاتصال');
+        })
+        .always(function() {
+            button.prop('disabled', false);
+        });
+    });
+    
+    // Decrease quantity handler
+    $('.decrease').on('click', function() {
+        var button = $(this);
+        var itemId = button.data('item-id');
+        var quantityInput = button.closest('.quantity-container').find('.quantity-amount');
+        var currentQuantity = parseInt(quantityInput.val());
+        
+        // Don't allow quantity below 1
+        if (currentQuantity <= 1) return;
+        
+        // Prevent multiple clicks
+        if (button.prop('disabled')) return;
+        button.prop('disabled', true);
+        
+        // Calculate new quantity
+        var newQuantity = currentQuantity - 1;
+        
+        // Update server
+        $.post('@Url.Action("UpdateQuantity", "Cart")', {
+            id: itemId,
+            quantity: newQuantity
+        })
+        .done(function(response) {
+            if (response.success) {
+                quantityInput.val(newQuantity);
+                updateCartTotals();
+                updateCartCount();
+            } else {
+                alert('خطأ في تحديث الكمية');
+            }
+        })
+        .fail(function() {
+            alert('خطأ في الاتصال');
+        })
+        .always(function() {
+            button.prop('disabled', false);
+        });
+    });
+    
+    // Remove item handler
+    $('.remove-item').on('click', function() {
+        if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+            var itemId = $(this).data('item-id');
+            removeItem(itemId);
+        }
+    });
+}
+
+function showSuccessMessage(message) {
+    // Create and show a temporary success message
+    var alertDiv = $('<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+        message +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+        '</div>');
+    
+    $('.container').prepend(alertDiv);
+    
+    // Auto-hide after 3 seconds
+    setTimeout(function() {
+        alertDiv.fadeOut(function() {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
+function updateCartCount() {
+    $.get('@Url.Action("GetCartCount", "Cart")')
+        .done(function(response) {
+            $('#cart-count').text(response.count);
+            if (response.count > 0) {
+                $('#cart-count').show();
+            } else {
+                $('#cart-count').hide();
+            }
+        });
+}
+
+
+// Function to apply coupon
+function applyCoupon() {
+    var couponCode = $('#coupon-code').val().trim();
+    if (!couponCode) {
+        showCouponMessage('Please enter a coupon code', 'error');
+        return;
+    }
+    
+    // Show loading state
+    var button = $('button[onclick="applyCoupon()"]');
+    var originalText = button.html();
+    button.html('Applying...').prop('disabled', true);
+    
+    // Simulate server delay
+    setTimeout(function() {
+        var discount = 0;
+        var isValidCoupon = false;
+        var couponName = '';
+        
+        // Example coupon codes
+        switch(couponCode.toUpperCase()) {
+            case 'SAVE10':
+                discount = 0.10; // 10% discount
+                isValidCoupon = true;
+                couponName = 'خصم 10% - 10% OFF';
+                break;
+            case 'SAVE20':
+                discount = 0.20; // 20% discount
+                isValidCoupon = true;
+                couponName = 'خصم 20% - 20% OFF';
+                break;
+            case 'FURNI50':
+                discount = 50; // 50 EGP fixed discount
+                isValidCoupon = true;
+                couponName = 'خصم 50 جنيه - 50 EGP OFF';
+                break;
+            default:
+                showCouponMessage('Invalid coupon code', 'error');
+                button.html(originalText).prop('disabled', false);
+                return;
+        }
+        
+        if (isValidCoupon) {
+            var subtotal = parseFloat($('#cart-subtotal').text().replace('EGP', '').trim());
+            var discountAmount = 0;
+            
+            if (discount < 1) {
+                // Percentage discount
+                discountAmount = subtotal * discount;
+            } else {
+                // Fixed amount discount
+                discountAmount = Math.min(discount, subtotal);
+            }
+            
+            $('#discount-amount').text('-' + discountAmount.toFixed(2) + ' EGP');
+            $('#discount-row').show();
+            
+            var total = subtotal - discountAmount;
+            $('#cart-total').text(total.toFixed(2) + ' EGP');
+            
+            showCouponMessage('Coupon applied successfully! (' + couponName + ')', 'success');
+            $('#coupon-code').prop('disabled', true);
+            button.html('Applied').prop('disabled', true).css('background-color', '#28a745');
+        }
+    }, 1000);
+}
+
+function showCouponMessage(message, type) {
+    var messageDiv = $('#coupon-message');
+    var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    var icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    
+    messageDiv.html('<div class="alert ' + alertClass + ' py-2 mb-0"><i class="' + icon + ' me-2"></i>' + message + '</div>');
+    messageDiv.show();
+    
+    if (type === 'error') {
+        setTimeout(function() {
+            messageDiv.fadeOut();
+        }, 5000);
+    }
+}
+</script>

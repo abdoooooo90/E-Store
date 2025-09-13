@@ -1,11 +1,13 @@
 using BLL.Services.ProductServices;
-using BLL.Services.OrderServices;
 using BLL.Services.CategorieServices;
+using BLL.Services.OrderServices;
+using Microsoft.AspNetCore.Mvc;
 using BLL.Models.ProductDtos;
-using DAL.Models;
+using BLL.Models.CategoryDtos;
+using BLL.Models.OrderDtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+using DAL.Models;
 
 namespace E_LapShop.Controllers
 {
@@ -145,7 +147,7 @@ namespace E_LapShop.Controllers
         // تعديل منتج - POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProduct(int id, ProductUpdateDto model)
+        public async Task<IActionResult> EditProduct(int id, ProductUpdateDto model, IFormFile mainImage)
         {
             if (!ModelState.IsValid)
             {
@@ -156,6 +158,41 @@ namespace E_LapShop.Controllers
 
             try
             {
+                // Handle image upload
+                if (mainImage != null && mainImage.Length > 0)
+                {
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "products");
+                    Directory.CreateDirectory(uploadsFolder);
+                    
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + mainImage.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await mainImage.CopyToAsync(fileStream);
+                    }
+                    
+                    model.ImageUrl = "/uploads/products/" + uniqueFileName;
+                }
+                // إذا لم يتم رفع صورة جديدة، تحقق من رابط الصورة
+                else
+                {
+                    // إذا كان هناك رابط صورة جديد، استخدمه
+                    if (!string.IsNullOrEmpty(model.ImageUrl) && Uri.IsWellFormedUriString(model.ImageUrl, UriKind.Absolute))
+                    {
+                        // استخدام الرابط الجديد
+                    }
+                    else
+                    {
+                        // إذا لم يكن هناك رابط صحيح، احتفظ بالصورة الحالية
+                        var currentProduct = await _productService.GetByIdAsync(id);
+                        if (currentProduct != null)
+                        {
+                            model.ImageUrl = currentProduct.ImageUrl;
+                        }
+                    }
+                }
+
                 var result = await _productService.UpdateAsync(id, model);
                 if (result)
                 {

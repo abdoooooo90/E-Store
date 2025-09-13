@@ -30,6 +30,13 @@ namespace BLL.Services.ProductServices
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
+        public async Task<IEnumerable<ProductDto>> GetLatestProductsAsync(int count = 3)
+        {
+            var products = await _unitOfWork.Products.GetAllWithCategoryAsync();
+            var latestProducts = products.OrderByDescending(p => p.CreatedAt).Take(count);
+            return _mapper.Map<IEnumerable<ProductDto>>(latestProducts);
+        }
+
         public async Task<ProductDto?> GetByIdAsync(int id)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(id);

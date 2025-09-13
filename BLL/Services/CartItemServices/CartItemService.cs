@@ -52,12 +52,25 @@ namespace BLL.Services.CartItemServices
         {
             try
             {
+                // Get product to check stock
+                var product = await _unitOfWork.Products.GetByIdAsync(dto.ProductId);
+                if (product == null || product.Stock < dto.Quantity)
+                {
+                    return false; // Not enough stock
+                }
+
                 // Check if item already exists in cart
                 var existingCartItem = await _unitOfWork.CartItems
                 .GetByUserIdAndProductIdAsync(dto.UserId, dto.ProductId);
 
                 if (existingCartItem != null)
                 {
+                    // Check if total quantity would exceed stock
+                    if (product.Stock < existingCartItem.Quantity + dto.Quantity)
+                    {
+                        return false; // Not enough stock for additional quantity
+                    }
+                    
                     // Update quantity
                     existingCartItem.Quantity += dto.Quantity;
                     _unitOfWork.CartItems.Update(existingCartItem);
@@ -69,6 +82,7 @@ namespace BLL.Services.CartItemServices
                     _unitOfWork.CartItems.Add(newItem);
                 }
 
+                // Don't reduce stock when adding to cart - only when order is placed
                 return await _unitOfWork.CompleteAsync() > 0;
             }
             catch

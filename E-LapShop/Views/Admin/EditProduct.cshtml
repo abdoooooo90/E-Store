@@ -155,7 +155,7 @@
                         
                         <div class="mb-3">
                             <label class="form-label">تغيير الصورة</label>
-                            <input type="file" class="form-control" accept="image/*" id="newImage" onchange="previewImage(this, 'newPreview')">
+                            <input type="file" class="form-control" accept="image/*" id="newImage" name="mainImage" onchange="previewImage(this, 'newPreview')">
                             <div class="mt-3">
                                 <div id="newPreview" class="image-preview" style="display: none;">
                                     <p class="text-muted mt-2">معاينة الصورة الجديدة</p>
@@ -165,8 +165,13 @@
                         
                         <div class="mb-3">
                             <label asp-for="ImageUrl" class="form-label">رابط الصورة</label>
-                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg">
-                            <small class="text-muted">يمكنك تعديل رابط الصورة</small>
+                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" onchange="previewImageUrl(this)">
+                            <small class="text-muted">يمكنك تعديل رابط الصورة أو إدخال رابط جديد</small>
+                            <div class="mt-2">
+                                <div id="urlPreview" class="image-preview" style="display: none;">
+                                    <p class="text-muted mt-2">معاينة الصورة من الرابط</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,6 +235,37 @@
             }
             
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // معاينة الصورة من الرابط
+    function previewImageUrl(input) {
+        const url = input.value.trim();
+        const preview = document.getElementById('urlPreview');
+        
+        if (url && isValidImageUrl(url)) {
+            const img = new Image();
+            img.onload = function() {
+                preview.innerHTML = `<img src="${url}" class="img-fluid rounded" style="max-height: 200px;">`;
+                preview.style.display = 'block';
+            };
+            img.onerror = function() {
+                preview.innerHTML = `<div class="text-danger"><i class="fas fa-exclamation-triangle"></i> رابط الصورة غير صحيح</div>`;
+                preview.style.display = 'block';
+            };
+            img.src = url;
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    // التحقق من صحة رابط الصورة
+    function isValidImageUrl(url) {
+        try {
+            const urlObj = new URL(url);
+            return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+        } catch {
+            return false;
         }
     }
 

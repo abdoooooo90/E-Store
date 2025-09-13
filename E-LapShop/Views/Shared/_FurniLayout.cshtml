@@ -60,7 +60,7 @@
                         </a>
                     </li>
                     <li class="position-relative">
-                        <a class="nav-link" href="@Url.Action("Cart", "Furni")">
+                        <a class="nav-link" href="@Url.Action("Index", "Cart")">
                             <img src="~/furni/images/cart.svg">
                             <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
                                 0
@@ -178,6 +178,43 @@
     <script src="~/furni/js/bootstrap.bundle.min.js"></script>
     <script src="~/furni/js/tiny-slider.js"></script>
     <script src="~/furni/js/custom.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Update cart and wishlist count on page load
+        $(document).ready(function() {
+            // Update cart count
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            } else {
+                // Fallback if updateCartCount is not defined
+                $.get('/Cart/GetCartCount')
+                    .done(function(response) {
+                        $('#cart-count').text(response.count);
+                        if (response.count > 0) {
+                            $('#cart-count').show();
+                        } else {
+                            $('#cart-count').hide();
+                        }
+                    });
+            }
+            
+            // Update wishlist count
+            if (typeof updateWishlistCount === 'function') {
+                updateWishlistCount();
+            } else {
+                // Fallback if updateWishlistCount is not defined
+                $.get('/Wishlist/GetCount')
+                    .done(function(response) {
+                        $('#wishlist-count').text(response.count);
+                        if (response.count > 0) {
+                            $('#wishlist-count').show();
+                        } else {
+                            $('#wishlist-count').hide();
+                        }
+                    });
+            }
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
