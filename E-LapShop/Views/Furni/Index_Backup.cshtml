@@ -1,0 +1,885 @@
+@using BLL.Models.ProductDtos
+@model IEnumerable<ProductDto>
+@{
+    ViewData["Title"] = "Furni - Modern Interior Design Studio";
+    Layout = "~/Views/Shared/_FurniLayout.cshtml";
+}
+
+@Html.AntiForgeryToken()
+
+<!-- Success/Welcome Message Display -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <script>
+        // Auto-hide success message after 5 seconds
+        setTimeout(function() {
+            var alert = document.querySelector('.alert-success');
+            if (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    </script>
+}
+
+@if (TempData["WelcomeMessage"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+        <i class="fas fa-user-circle me-2"></i>
+        @TempData["WelcomeMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <script>
+        // Auto-hide welcome message after 6 seconds
+        setTimeout(function() {
+            var alert = document.querySelector('.alert-info');
+            if (alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 6000);
+    </script>
+}
+
+<!-- Start Hero Section -->
+<div class="hero">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-lg-5">
+                <div class="intro-excerpt">
+                    <h1>Modern Interior <span class="d-block">Design Studio</span></h1>
+                    <p class="mb-4">Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate velit imperdiet dolor tempor tristique.</p>
+                    <p><a href="@Url.Action("Shop", "Furni")" class="btn btn-secondary me-2">Shop Now</a><a href="#" class="btn btn-white-outline">Explore</a></p>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="hero-img-wrap">
+                    <img src="~/furni/images/couch.png" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Hero Section -->
+
+<!-- Start Product Section -->
+<div class="product-section">
+    <div class="container">
+        <div class="row">
+            <!-- Start Column 1 -->
+            <div class="col-md-12 col-lg-3 mb-5 mb-lg-0">
+                <h2 class="mb-4 section-title">Latest Products</h2>
+                <p class="mb-4">Discover the newest products recently added to our store. High-quality products designed specifically for your comfort and home elegance.</p>
+                <p><a href="@Url.Action("Shop", "Furni")" class="btn">Explore More</a></p>
+            </div>
+            <!-- End Column 1 -->
+
+            @foreach (var product in Model)
+            {
+                <!-- Start Product Column -->
+                <div class="col-12 col-md-4 col-lg-3 mb-5 mb-md-0">
+                    <div class="product-item-wrapper position-relative">
+                        <!-- New Badge - Only for latest products -->
+                        <div class="new-badge">
+                            <span class="badge bg-danger">New</span>
+                        </div>
+                        
+                        <!-- Wishlist Heart Icon -->
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <button class="btn btn-link position-absolute wishlist-btn" 
+                                    data-product-id="@product.Id" 
+                                    style="top: 10px; right: 10px; z-index: 10; background: none; border: none; padding: 0;">
+                                <i class="fas fa-heart text-muted wishlist-icon" style="font-size: 1.5rem; text-shadow: 0 0 3px rgba(255,255,255,0.8);"></i>
+                            </button>
+                        }
+                        
+                        <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">
+                            <img src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : "~/furni/images/product-1.png")" class="img-fluid product-thumbnail">
+                            <h3 class="product-title">@product.Name</h3>
+                            <strong class="product-price">@product.Price.ToString("F2") EGP</strong>
+                            
+                            @if (!product.IsAvailable || product.Stock <= 0)
+                            {
+                                <div class="unavailable-badge">
+                                    <small class="text-muted">Currently Unavailable</small>
+                                </div>
+                            }
+                            
+                            @if (product.IsAvailable && product.Stock > 0)
+                            {
+                                <span class="icon-cross add-to-cart-btn" data-product-id="@product.Id" onclick="addProductToCart(@product.Id)" style="cursor: pointer;">
+                                    <img src="~/furni/images/cross.svg" class="img-fluid">
+                                </span>
+                            }
+                        </a>
+                    </div>
+                </div>
+                <!-- End Product Column -->
+            }
+        </div>
+    </div>
+</div>
+<!-- End Product Section -->
+
+<!-- Shop Style for Home Products -->
+<style>
+.product-item-wrapper:hover .wishlist-btn {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.wishlist-btn:hover {
+    background: none !important;
+}
+
+.wishlist-icon.text-danger {
+    color: #dc3545 !important;
+}
+
+.wishlist-icon.text-muted {
+    color: #6c757d !important;
+}
+
+.unavailable-badge {
+    background-color: rgba(108, 117, 125, 0.1);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.product-item-wrapper:has(.unavailable-badge) .product-item {
+    opacity: 0.7;
+}
+
+.product-item-wrapper:has(.unavailable-badge) .product-thumbnail {
+    filter: grayscale(30%);
+}
+
+.new-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 15;
+}
+
+.new-badge .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>
+
+<!-- Start Why Choose Us Section -->
+<div class="why-choose-section">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-lg-6">
+                <h2 class="section-title">Why Choose Us</h2>
+                <p>Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate velit imperdiet dolor tempor tristique.</p>
+
+                <div class="row my-5">
+                    <div class="col-6 col-md-6">
+                        <div class="feature">
+                            <div class="icon">
+                                <img src="~/furni/images/truck.svg" alt="Image" class="img-fluid">
+                            </div>
+                            <h3>Fast &amp; Free Shipping</h3>
+                            <p>Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-6">
+                        <div class="feature">
+                            <div class="icon">
+                                <img src="~/furni/images/bag.svg" alt="Image" class="img-fluid">
+                            </div>
+                            <h3>Easy to Shop</h3>
+                            <p>Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-6">
+                        <div class="feature">
+                            <div class="icon">
+                                <img src="~/furni/images/support.svg" alt="Image" class="img-fluid">
+                            </div>
+                            <h3>24/7 Support</h3>
+                            <p>Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-6">
+                        <div class="feature">
+                            <div class="icon">
+                                <img src="~/furni/images/return.svg" alt="Image" class="img-fluid">
+                            </div>
+                            <h3>Hassle Free Returns</h3>
+                            <p>Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="img-wrap">
+                    <img src="~/furni/images/why-choose-us-img.jpg" alt="Image" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Why Choose Us Section -->
+
+<!-- Start We Help Section -->
+<div class="we-help-section">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-lg-7 mb-5 mb-lg-0">
+                <div class="imgs-grid">
+                    <div class="grid grid-1"><img src="~/furni/images/img-grid-1.jpg" alt="Untree.co"></div>
+                    <div class="grid grid-2"><img src="~/furni/images/img-grid-2.jpg" alt="Untree.co"></div>
+                    <div class="grid grid-3"><img src="~/furni/images/img-grid-3.jpg" alt="Untree.co"></div>
+                </div>
+            </div>
+            <div class="col-lg-5 ps-lg-5">
+                <h2 class="section-title mb-4">We Help You Make Modern Interior Design</h2>
+                <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate velit imperdiet dolor tempor tristique. Pellentesque habitant morbi tristique senectus et netus et malesuada</p>
+
+                <ul class="list-unstyled custom-list my-4">
+                    <li>Donec vitae odio quis nisl dapibus malesuada</li>
+                    <li>Donec vitae odio quis nisl dapibus malesuada</li>
+                    <li>Donec vitae odio quis nisl dapibus malesuada</li>
+                    <li>Donec vitae odio quis nisl dapibus malesuada</li>
+                </ul>
+                <p><a href="#" class="btn">Explore</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End We Help Section -->
+
+<!-- Start Popular Product -->
+<div class="popular-product">
+    <div class="container">
+        <div class="row">
+            @{
+                var popularProducts = Model.Skip(3).Take(3);
+            }
+            @foreach (var product in popularProducts)
+            {
+                <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+                    <div class="product-item-sm d-flex">
+                        <div class="thumbnail">
+                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" alt="@product.Name" class="img-fluid">
+                            }
+                            else
+                            {
+                                <img src="~/furni/images/product-1.png" alt="@product.Name" class="img-fluid">
+                            }
+                        </div>
+                        <div class="pt-3 position-relative">
+                            <h3>@product.Name</h3>
+                            <p>@(product.Description ?? "High-quality product designed specifically for your comfort and home elegance.")</p>
+                            <p><a href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">Read More</a></p>
+                            
+                            <!-- Wishlist Heart Icon for Popular Products -->
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button class="btn wishlist-btn position-absolute" 
+                                        data-product-id="@product.Id" 
+                                        style="top: 0; right: 0; background: none; border: none; z-index: 10;">
+                                    <i class="fas fa-heart" style="color: #ccc; font-size: 1.3rem; text-shadow: 0 0 3px rgba(255,255,255,0.8);"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            
+            @if (!popularProducts.Any())
+            {
+                <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+                    <div class="product-item-sm d-flex">
+                        <div class="thumbnail">
+                            <img src="~/furni/images/product-1.png" alt="Image" class="img-fluid">
+                        </div>
+                        <div class="pt-3">
+                            <h3>Nordic Chair</h3>
+                            <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                            <p><a href="#">Read More</a></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+                    <div class="product-item-sm d-flex">
+                        <div class="thumbnail">
+                            <img src="~/furni/images/product-2.png" alt="Image" class="img-fluid">
+                        </div>
+                        <div class="pt-3">
+                            <h3>Kruzo Aero Chair</h3>
+                            <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                            <p><a href="#">Read More</a></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+                    <div class="product-item-sm d-flex">
+                        <div class="thumbnail">
+                            <img src="~/furni/images/product-3.png" alt="Image" class="img-fluid">
+                        </div>
+                        <div class="pt-3">
+                            <h3>Ergonomic Chair</h3>
+                            <p>Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate.</p>
+                            <p><a href="#">Read More</a></p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<!-- End Popular Product -->
+
+<!-- Start Testimonial Slider -->
+<div class="testimonial-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-7 mx-auto text-center">
+                <h2 class="section-title">Testimonials</h2>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="testimonial-slider-wrap text-center">
+                    <div id="testimonial-nav">
+                        <span class="prev" data-controls="prev"><span class="fa fa-chevron-left"></span></span>
+                        <span class="next" data-controls="next"><span class="fa fa-chevron-right"></span></span>
+                    </div>
+
+                    <div class="testimonial-slider">
+                        <div class="item">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8 mx-auto">
+                                    <div class="testimonial-block text-center">
+                                        <blockquote class="mb-5">
+                                            <p>&ldquo;Donec facilisis quam ut purus rutrum lobortis. Donec vitae odio quis nisl dapibus malesuada. Nullam ac aliquet velit. Aliquam vulputate velit imperdiet dolor tempor tristique. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Integer convallis volutpat dui quis scelerisque.&rdquo;</p>
+                                        </blockquote>
+                                        <div class="author-info">
+                                            <div class="author-pic">
+                                                <img src="~/furni/images/person-1.png" alt="Maria Jones" class="img-fluid">
+                                            </div>
+                                            <h3 class="font-weight-bold">Maria Jones</h3>
+                                            <span class="position d-block mb-3">CEO, Co-Founder, XYZ Inc.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Testimonial Slider -->
+
+<!-- Start Blog Section -->
+<div class="blog-section">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <h2 class="section-title">Recent Blog</h2>
+            </div>
+            <div class="col-md-6 text-start text-md-end">
+                <a href="@Url.Action("Blog", "Furni")" class="more">View All Posts</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 col-sm-6 col-md-4 mb-4 mb-md-0">
+                <div class="post-entry">
+                    <a href="#" class="post-thumbnail"><img src="~/furni/images/post-1.jpg" alt="Image" class="img-fluid"></a>
+                    <div class="post-content-entry">
+                        <h3><a href="#">First Time Home Owner Ideas</a></h3>
+                        <div class="meta">
+                            <span>by <a href="#">Kristin Watson</a></span> <span>on <a href="#">Dec 19, 2021</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-md-4 mb-4 mb-md-0">
+                <div class="post-entry">
+                    <a href="#" class="post-thumbnail"><img src="~/furni/images/post-2.jpg" alt="Image" class="img-fluid"></a>
+                    <div class="post-content-entry">
+                        <h3><a href="#">How To Keep Your Furniture Clean</a></h3>
+                        <div class="meta">
+                            <span>by <a href="#">Robert Fox</a></span> <span>on <a href="#">Dec 15, 2021</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-md-4 mb-4 mb-md-0">
+                <div class="post-entry">
+                    <a href="#" class="post-thumbnail"><img src="~/furni/images/post-3.jpg" alt="Image" class="img-fluid"></a>
+                    <div class="post-content-entry">
+                        <h3><a href="#">Small Space Furniture Apartment Ideas</a></h3>
+                        <div class="meta">
+                            <span>by <a href="#">Kristin Watson</a></span> <span>on <a href="#">Dec 12, 2021</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Blog Section -->
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize wishlist states
+            initializeWishlistStates();
+            
+            // Add event listeners for wishlist buttons
+            document.querySelectorAll('.wishlist-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleWishlist(this);
+                });
+            });
+            
+            // Add event listeners for add to cart buttons
+            document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addToCart(this);
+                });
+            });
+        });
+
+        function initializeWishlistStates() {
+            document.querySelectorAll('.wishlist-btn').forEach(button => {
+                const productId = button.getAttribute('data-product-id');
+                checkWishlistStatus(productId, button);
+            });
+        }
+
+        function checkWishlistStatus(productId, button) {
+            fetch(`/Wishlist/IsInWishlist?productId=${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const heart = button.querySelector('i');
+                    if (data.isInWishlist) {
+                        heart.style.color = '#dc3545';
+                        button.setAttribute('data-in-wishlist', 'true');
+                    } else {
+                        heart.style.color = '#ccc';
+                        button.setAttribute('data-in-wishlist', 'false');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking wishlist status:', error);
+                });
+        }
+
+        function toggleWishlist(button) {
+            const productId = button.getAttribute('data-product-id');
+            const isInWishlist = button.getAttribute('data-in-wishlist') === 'true';
+            const heart = button.querySelector('i');
+
+            if (isInWishlist) {
+                // Remove from wishlist
+                fetch('/Wishlist/Remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ productId: parseInt(productId) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        heart.style.color = '#ccc';
+                        button.setAttribute('data-in-wishlist', 'false');
+                        updateWishlistCount();
+                        showToast('Removed from wishlist', 'success');
+                    } else {
+                        showToast(data.message || 'Error removing from wishlist', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing from wishlist:', error);
+                    showToast('Error removing from wishlist', 'error');
+                });
+            } else {
+                // Add to wishlist
+                fetch('/Wishlist/Add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ productId: parseInt(productId) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        heart.style.color = '#dc3545';
+                        button.setAttribute('data-in-wishlist', 'true');
+                        updateWishlistCount();
+                        showToast('Added to wishlist', 'success');
+                    } else {
+                        showToast(data.message || 'Error adding to wishlist', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding to wishlist:', error);
+                    showToast('Error adding to wishlist', 'error');
+                });
+            }
+        }
+
+        function addToCart(button) {
+            const productId = button.getAttribute('data-product-id');
+            
+            fetch('/Cart/AddToCart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ 
+                    ProductId: parseInt(productId),
+                    Quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateCartCount();
+                    showToast('تم إضافة المنتج إلى السلة بنجاح!', 'success');
+                } else {
+                    if (data.message && data.message.includes('تسجيل الدخول')) {
+                        window.location.href = '/Account/Auth';
+                    } else {
+                        showToast(data.message || 'فشل في إضافة المنتج للسلة', 'error');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                showToast('حدث خطأ أثناء إضافة المنتج للسلة', 'error');
+            });
+        }
+
+        function updateWishlistCount() {
+            fetch('/Wishlist/GetCount')
+                .then(response => response.json())
+                .then(data => {
+                    const wishlistBadge = document.querySelector('.wishlist-count');
+                    if (wishlistBadge) {
+                        wishlistBadge.textContent = data.count;
+                    }
+                })
+                .catch(error => console.error('Error updating wishlist count:', error));
+        }
+
+        function updateCartCount() {
+            fetch('/Cart/GetCartCount')
+                .then(response => response.json())
+                .then(data => {
+                    const cartBadge = document.querySelector('#cart-count');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.count;
+                        if (data.count > 0) {
+                            cartBadge.style.display = 'inline';
+                        } else {
+                            cartBadge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating cart count:', error));
+        }
+
+        function showToast(message, type) {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            // Add to page
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.appendChild(toast);
+            
+            // Show toast
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            // Remove after hiding
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        // Wishlist functionality
+        $('.wishlist-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = $(this).data('product-id');
+            const heartIcon = $(this).find('i');
+            const isInWishlist = heartIcon.hasClass('text-danger');
+            
+            if (isInWishlist) {
+                // Remove from wishlist
+                $.post('@Url.Action("RemoveFromWishlist", "Wishlist")', { productId: productId })
+                    .done(function(response) {
+                        if (response.success) {
+                            heartIcon.removeClass('text-danger').css('color', '#ccc');
+                            showToast('Product removed from wishlist', 'success');
+                            updateWishlistCount();
+                        } else {
+                            showToast('Error removing product from wishlist', 'error');
+                        }
+                    })
+                    .fail(function() {
+                        showToast('Connection error', 'error');
+                    });
+            } else {
+                // Add to wishlist
+                $.post('@Url.Action("AddToWishlist", "Wishlist")', { productId: productId })
+                    .done(function(response) {
+                        if (response.success) {
+                            heartIcon.addClass('text-danger').css('color', '#dc3545');
+                            showToast('Product added to wishlist', 'success');
+                            updateWishlistCount();
+                        } else {
+                            showToast('Error adding product to wishlist', 'error');
+                        }
+                    })
+                    .fail(function() {
+                        showToast('Connection error', 'error');
+                    });
+            }
+        });
+
+        // Load wishlist status on page load
+        loadWishlistStatus();
+        updateWishlistCount();
+        updateCartCount();
+    });
+
+    // Function to load wishlist status for all products
+    function loadWishlistStatus() {
+        $('.wishlist-btn').each(function() {
+            const productId = $(this).data('product-id');
+            const heartIcon = $(this).find('i');
+            
+            $.get('@Url.Action("IsInWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.isInWishlist) {
+                        heartIcon.addClass('text-danger').css('color', '#dc3545');
+                    } else {
+                        heartIcon.removeClass('text-danger').css('color', '#ccc');
+                    }
+                });
+        });
+    }
+
+    // Function to update wishlist count in navigation
+    function updateWishlistCount() {
+        $.get('@Url.Action("GetWishlistCount", "Wishlist")')
+            .done(function(response) {
+                $('#wishlist-count').text(response.count);
+                if (response.count > 0) {
+                    $('#wishlist-count').show();
+                } else {
+                    $('#wishlist-count').hide();
+                }
+            });
+    }
+
+    // Function to update cart count in navigation
+    function updateCartCount() {
+        $.get('@Url.Action("GetCartCount", "Cart")')
+            .done(function(response) {
+                $('#cart-count').text(response.count);
+                if (response.count > 0) {
+                    $('#cart-count').show();
+                } else {
+                    $('#cart-count').hide();
+                }
+            });
+    }
+
+    // Add to Cart functionality for + buttons
+    $(document).on('click', '.add-to-cart-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const productId = $(this).data('product-id');
+        const heartIcon = $(this).find('i');
+        const isInWishlist = heartIcon.hasClass('text-danger');
+        
+        if (isInWishlist) {
+            // Remove from wishlist
+            $.post('@Url.Action("RemoveFromWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.success) {
+                        heartIcon.removeClass('text-danger').css('color', '#ccc');
+                        showToast('Product removed from wishlist', 'success');
+                        updateWishlistCount();
+                    } else {
+                        showToast('Error removing product from wishlist', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Connection error', 'error');
+                });
+        } else {
+            // Add to wishlist
+            $.post('@Url.Action("AddToWishlist", "Wishlist")', { productId: productId })
+                .done(function(response) {
+                    if (response.success) {
+                        heartIcon.addClass('text-danger').css('color', '#dc3545');
+                        showToast('Product added to wishlist', 'success');
+                        updateWishlistCount();
+                    } else {
+                        showToast('Error adding product to wishlist', 'error');
+                    }
+                })
+                .fail(function() {
+                    showToast('Connection error', 'error');
+                });
+        }
+    });
+
+    // Load wishlist status on page load
+    loadWishlistStatus();
+    updateWishlistCount();
+    updateCartCount();
+});
+
+// Function to load wishlist status for all products
+function loadWishlistStatus() {
+    $('.wishlist-btn').each(function() {
+        const productId = $(this).data('product-id');
+        const heartIcon = $(this).find('i');
+        
+        $.get('@Url.Action("IsInWishlist", "Wishlist")', { productId: productId })
+            .done(function(response) {
+                if (response.isInWishlist) {
+                    heartIcon.addClass('text-danger').css('color', '#dc3545');
+                } else {
+                    heartIcon.removeClass('text-danger').css('color', '#ccc');
+                }
+            });
+    });
+}
+
+// Function to update wishlist count in navigation
+function updateWishlistCount() {
+    $.get('@Url.Action("GetWishlistCount", "Wishlist")')
+        .done(function(response) {
+            $('#wishlist-count').text(response.count);
+            if (response.count > 0) {
+                $('#wishlist-count').show();
+            } else {
+                $('#wishlist-count').hide();
+            }
+        });
+}
+
+// Function to update cart count in navigation
+function updateCartCount() {
+    $.get('@Url.Action("GetCartCount", "Cart")')
+        .done(function(response) {
+            $('#cart-count').text(response.count);
+            if (response.count > 0) {
+                $('#cart-count').show();
+            } else {
+                $('#cart-count').hide();
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartCount();
+            showToast('تم إضافة المنتج إلى السلة بنجاح!', 'success');
+        } else {
+            if (data.message && data.message.includes('تسجيل الدخول')) {
+                window.location.href = '/Account/Auth';
+            } else {
+                showToast(data.message || 'فشل في إضافة المنتج للسلة', 'error');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error adding to cart:', error);
+        showToast('حدث خطأ أثناء إضافة المنتج للسلة', 'error');
+    });
+});
+
+// Toast notification function
+function showToast(message, type) {
+    const toastClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    
+    const toast = $(`
+        <div class="alert ${toastClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+            <i class="${icon} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    
+    // Auto-hide after 3 seconds
+    setTimeout(function() {
+        toast.alert('close');
+    }, 3000);
+}
+</script>
+}

@@ -1,7 +1,10 @@
 using BLL.Services.ProductServices;
 using BLL.Services.CategorieServices;
+using BLL.Services.CartItemServices;
 using E_LapShop.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using DAL.Models;
 using System.Diagnostics;
 
 namespace E_LapShop.Controllers
@@ -11,18 +14,26 @@ namespace E_LapShop.Controllers
         private readonly ILogger<FurniController> _logger;
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
+        private readonly ICartItemService _cartItemService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public FurniController(ILogger<FurniController> logger, IProductService productService, ICategoryService categoryService)
+        public FurniController(ILogger<FurniController> logger, IProductService productService, ICategoryService categoryService, ICartItemService cartItemService, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
             _productService = productService;
             _categoryService = categoryService;
+            _cartItemService = cartItemService;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
         {
-            // Get the latest 3 products ordered by creation date
             var latestProducts = await _productService.GetLatestProductsAsync(3);
+            
+            // Debug: Log product IDs being displayed
+            var productIds = string.Join(", ", latestProducts.Select(p => $"ID:{p.Id} Name:{p.Name}"));
+            Console.WriteLine($"Home page displaying products: {productIds}");
+            
             return View(latestProducts);
         }
 
@@ -30,6 +41,10 @@ namespace E_LapShop.Controllers
         {
             var products = await _productService.GetAllAsync();
             var categories = await _categoryService.GetAllAsync();
+            
+            // Debug: Log product IDs being displayed in shop
+            var shopProductIds = string.Join(", ", products.Select(p => $"ID:{p.Id} Name:{p.Name}"));
+            Console.WriteLine($"Shop page displaying products: {shopProductIds}");
             
             // Apply filters
             if (categoryId.HasValue && categoryId.Value > 0)
@@ -70,9 +85,18 @@ namespace E_LapShop.Controllers
             return View();
         }
 
-        public IActionResult Cart()
+        public async Task<IActionResult> Cart()
         {
-            return View();
+            var userId = _userManager.GetUserId(User);
+            if (userId == null)
+            {
+                // Show empty cart for non-authenticated users
+                return View(new List<BLL.Models.CartItemDtos.CartItemDto>());
+            }
+
+            var cartItems = await _cartItemService.GetUserCartAsync(userId);
+            ViewBag.CartTotal = cartItems?.Sum(x => x.Total) ?? 0;
+            return View(cartItems);
         }
 
         public IActionResult Checkout()

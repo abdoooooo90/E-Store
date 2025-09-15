@@ -21,14 +21,10 @@
 
 <div class="untree_co-section before-footer-section">
     <div class="container">
-        <!-- Returning customer login link -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <p class="text-muted">Returning customer? <a href="#" class="text-decoration-underline">Click here to login</a></p>
-            </div>
-        </div>
+        
     
         <form asp-controller="Cart" asp-action="PlaceOrder" method="post" id="checkoutForm">
+            @Html.AntiForgeryToken()
             <div class="row">
                 <!-- Billing Details -->
                 <div class="col-lg-7">
@@ -212,9 +208,29 @@
                                         <td class="text-black font-weight-bold"><strong>Cart Subtotal</strong></td>
                                         <td class="text-black">@ViewBag.CartTotal.ToString("F2") EGP</td>
                                     </tr>
+                                    @if (!string.IsNullOrEmpty(ViewBag.CouponCode as string) && ViewBag.DiscountAmount > 0)
+                                    {
+                                        <tr>
+                                            <td class="text-success font-weight-bold">
+                                                <strong>Discount (@ViewBag.CouponCode - @ViewBag.DiscountPercentage%)</strong>
+                                            </td>
+                                            <td class="text-success">-@ViewBag.DiscountAmount.ToString("F2") EGP</td>
+                                        </tr>
+                                    }
                                     <tr>
                                         <td class="text-black font-weight-bold"><strong>Order Total</strong></td>
-                                        <td class="text-black font-weight-bold"><strong>@ViewBag.CartTotal.ToString("F2") EGP</strong></td>
+                                        <td class="text-black font-weight-bold">
+                                            <strong>
+                                                @if (ViewBag.FinalTotal != null)
+                                                {
+                                                    @ViewBag.FinalTotal.ToString("F2")
+                                                }
+                                                else
+                                                {
+                                                    @ViewBag.CartTotal.ToString("F2")
+                                                } EGP
+                                            </strong>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -360,18 +376,19 @@
                 }
 
                 // Submit order via AJAX
+                const token = $('input[name="__RequestVerificationToken"]').val();
                 $.ajax({
                     url: '@Url.Action("PlaceOrder", "Cart")',
                     type: 'POST',
                     data: formData,
+                    headers: {
+                        'RequestVerificationToken': token,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
                     success: function(response) {
                         if (response.success) {
-                            let message = 'Order placed successfully! Order ID: ' + response.orderId;
-                            if (selectedPayment === 'BankTransfer') {
-                                message += '\n\nPlease complete your bank transfer using the provided details and reference your order ID.';
-                            }
-                            alert(message);
-                            window.location.href = '@Url.Action("OrderConfirmation", "Cart")/' + response.orderId;
+                            // Redirect to Thank You page
+                            window.location.href = response.redirectUrl;
                         } else {
                             alert('Error: ' + response.message);
                             $('button[type="submit"]').html('Place Order').prop('disabled', false);

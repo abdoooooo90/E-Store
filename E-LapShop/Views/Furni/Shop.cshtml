@@ -5,33 +5,26 @@
     Layout = "~/Views/Shared/_FurniLayout.cshtml";
 }
 
+@Html.AntiForgeryToken()
+
 <!-- Start Hero Section -->
 <div class="hero">
     <div class="container">
-        <div class="row justify-content-between">
-            <div class="col-lg-5">
-                <div class="intro-excerpt">
-                    <h1>Shop</h1>
-                    <p class="mb-4">Discover our amazing collection of furniture</p>
-                </div>
-            </div>
-            <div class="col-lg-7">
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h1 class="hero-title">Shop</h1>
+                <p class="hero-subtitle mb-5">Discover our amazing collection of furniture</p>
             </div>
         </div>
-    </div>
-</div>
-<!-- End Hero Section -->
-
-<!-- Enhanced Search & Filter Section -->
-<div class="search-filter-section py-5">
-    <div class="container">
-        <div class="search-filter-card">
-            <div class="row align-items-center">
-                <div class="col-lg-8 col-md-7">
+        
+        <!-- Enhanced Search & Filter Section -->
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="search-filter-transparent">
                     <form method="get" action="@Url.Action("Shop", "Furni")" class="search-form" id="filterForm">
                         <div class="row g-3 align-items-end">
                             <!-- Search Input -->
-                            <div class="col-lg-6 col-md-12">
+                            <div class="col-lg-5 col-md-6">
                                 <div class="search-input-wrapper">
                                     <i class="fas fa-search search-icon"></i>
                                     <input type="text" class="form-control search-input" 
@@ -42,7 +35,7 @@
                             </div>
                             
                             <!-- Category Filter -->
-                            <div class="col-lg-6 col-md-12">
+                            <div class="col-lg-4 col-md-6">
                                 <div class="category-wrapper">
                                     <select class="form-select category-select" id="categoryId" name="categoryId">
                                         <option value="">جميع الفئات</option>
@@ -59,58 +52,57 @@
                                     <i class="fas fa-chevron-down select-arrow"></i>
                                 </div>
                             </div>
+                            
+                            <!-- Filter Actions -->
+                            <div class="col-lg-3 col-md-12">
+                                <div class="filter-actions">
+                                    <button type="button" class="btn btn-primary filter-btn" onclick="document.getElementById('filterForm').submit()">
+                                        <i class="fas fa-filter me-2"></i>
+                                        فلتر
+                                    </button>
+                                    <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-secondary reset-btn">
+                                        <i class="fas fa-undo"></i>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </form>
-                </div>
-                
-                <!-- Filter Actions -->
-                <div class="col-lg-4 col-md-5">
-                    <div class="filter-actions">
-                        <button type="button" class="btn btn-primary filter-btn" onclick="document.getElementById('filterForm').submit()">
-                            <i class="fas fa-filter me-2"></i>
-                            تطبيق الفلتر
-                        </button>
-                        <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-secondary reset-btn">
-                            <i class="fas fa-undo me-2"></i>
-                            إعادة تعيين
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Active Filters Display -->
-            @if (!string.IsNullOrEmpty(ViewBag.SearchTerm?.ToString()) || ViewBag.SelectedCategoryId != null)
-            {
-                <div class="active-filters mt-3">
-                    <span class="filter-label">الفلاتر النشطة:</span>
-                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm?.ToString()))
+                    
+                    <!-- Active Filters Display -->
+                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm?.ToString()) || ViewBag.SelectedCategoryId != null)
                     {
-                        <span class="filter-tag">
-                            <i class="fas fa-search me-1"></i>
-                            البحث: "@ViewBag.SearchTerm"
-                            <a href="@Url.Action("Shop", "Furni", new { categoryId = ViewBag.SelectedCategoryId })" class="remove-filter">
-                                <i class="fas fa-times"></i>
-                            </a>
-                        </span>
-                    }
-                    @if (ViewBag.SelectedCategoryId != null && ViewBag.Categories != null)
-                    {
-                        @foreach (var category in ViewBag.Categories)
-                        {
-                            @if (category.Id.ToString() == ViewBag.SelectedCategoryId?.ToString())
+                        <div class="active-filters mt-3">
+                            <span class="filter-label">الفلاتر النشطة:</span>
+                            @if (!string.IsNullOrEmpty(ViewBag.SearchTerm?.ToString()))
                             {
                                 <span class="filter-tag">
-                                    <i class="fas fa-tag me-1"></i>
-                                    الفئة: @category.Name
-                                    <a href="@Url.Action("Shop", "Furni", new { searchTerm = ViewBag.SearchTerm })" class="remove-filter">
+                                    <i class="fas fa-search me-1"></i>
+                                    البحث: "@ViewBag.SearchTerm"
+                                    <a href="@Url.Action("Shop", "Furni", new { categoryId = ViewBag.SelectedCategoryId })" class="remove-filter">
                                         <i class="fas fa-times"></i>
                                     </a>
                                 </span>
                             }
-                        }
+                            @if (ViewBag.SelectedCategoryId != null && ViewBag.Categories != null)
+                            {
+                                @foreach (var category in ViewBag.Categories)
+                                {
+                                    @if (category.Id.ToString() == ViewBag.SelectedCategoryId?.ToString())
+                                    {
+                                        <span class="filter-tag">
+                                            <i class="fas fa-tag me-1"></i>
+                                            الفئة: @category.Name
+                                            <a href="@Url.Action("Shop", "Furni", new { searchTerm = ViewBag.SearchTerm })" class="remove-filter">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                        </span>
+                                    }
+                                }
+                            }
+                        </div>
                     }
                 </div>
-            }
+            </div>
         </div>
     </div>
 </div>
@@ -136,46 +128,59 @@
             
             @if (Model != null && Model.Any())
             {
-                @foreach (var product in Model)
-                {
-                    <div class="col-12 col-md-4 col-lg-3 mb-5">
-                        <div class="product-item-wrapper position-relative">
-                            <!-- Wishlist Heart Icon -->
-                            <button class="btn btn-link position-absolute wishlist-btn" 
-                                    data-product-id="@product.Id" 
-                                    style="top: 10px; right: 10px; z-index: 10; background: none; border: none; padding: 0;">
-                                <i class="fas fa-heart text-muted wishlist-icon" style="font-size: 1.5rem; text-shadow: 0 0 3px rgba(255,255,255,0.8);"></i>
-                            </button>
-                            
-                            <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">
-                                <img src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : "~/furni/images/product-1.png")" class="img-fluid product-thumbnail">
-                                <h3 class="product-title">@product.Name</h3>
-                                <strong class="product-price">@product.Price.ToString("F2") EGP</strong>
-                                
-                                @if (!product.IsAvailable || product.Stock <= 0)
+                <div class="row equal-height">
+                    @foreach (var product in Model)
+                    {
+                        <div class="col-12 col-md-4 col-lg-3 mb-5">
+                            <div class="product-item-wrapper position-relative">
+                                <!-- Wishlist Button (only for authenticated users) -->
+                                @if (User.Identity?.IsAuthenticated == true)
                                 {
-                                    <div class="unavailable-badge">
-                                        <small class="text-muted">Currently Unavailable</small>
-                                    </div>
+                                    <button class="btn btn-link position-absolute wishlist-btn" 
+                                            data-product-id="@product.Id" 
+                                            style="top: 10px; right: 10px; z-index: 10; background: none; border: none; padding: 0;">
+                                        <i class="fas fa-heart text-muted wishlist-icon" style="font-size: 1.5rem; text-shadow: 0 0 3px rgba(255,255,255,0.8);"></i>
+                                    </button>
                                 }
-                                
-                                <span class="icon-cross add-to-cart-btn" data-product-id="@product.Id" data-product-name="@product.Name" data-product-price="@product.Price">
-                                    <img src="~/furni/images/cross.svg" class="img-fluid">
-                                </span>
-                            </a>
+
+                                <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = product.Id })">
+                                    <img src="@(!string.IsNullOrEmpty(product.ImageUrl) ? product.ImageUrl : "~/furni/images/product-1.png")" class="img-fluid product-thumbnail">
+                                    <h3 class="product-title">@product.Name</h3>
+                                    <strong class="product-price">@product.Price.ToString("F2") EGP</strong>
+
+                                    @if (!product.IsAvailable || product.Stock <= 0)
+                                    {
+                                        <div class="unavailable-badge">
+                                            <small class="text-muted">Currently Unavailable</small>
+                                        </div>
+                                    }
+                                    
+                                    <!-- Add to Cart Button - Original cross icon style -->
+                                    <span class="icon-cross add-to-cart-btn position-absolute" 
+                                          data-product-id="@product.Id" 
+                                          data-product-name="@Html.Raw(product.Name.Replace("\"", "&quot;"))"
+                                          data-product-price="@product.Price"
+                                          onclick="event.preventDefault(); event.stopPropagation(); addToCartFromButton(this);"
+                                          style="cursor: pointer; @((!product.IsAvailable || product.Stock <= 0) ? "pointer-events: none; opacity: 0.5;" : "")">
+                                        <img src="~/furni/images/cross.svg" class="img-fluid">
+                                    </span>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
+                </div>
             }
             else
             {
-                <div class="col-12 text-center">
-                    <div class="alert alert-info">
-                        <h4>No Products Found</h4>
-                        <p>No products match the specified search criteria. Please try different filters or clear filters to view all products.</p>
-                        <a href="@Url.Action("Shop", "Furni")" class="btn btn-primary mt-2">
-                            <i class="fas fa-refresh me-1"></i>View All Products
-                        </a>
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info">
+                            <h4>No Products Found</h4>
+                            <p>No products match the specified search criteria. Please try different filters or clear filters to view all products.</p>
+                            <a href="@Url.Action("Shop", "Furni")" class="btn btn-primary mt-2">
+                                <i class="fas fa-refresh me-1"></i>View All Products
+                            </a>
+                        </div>
                     </div>
                 </div>
             }
@@ -184,30 +189,29 @@
 </div>
 
 <style>
-/* Search & Filter Section Styling */
-.search-filter-section {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 1px solid #dee2e6;
+/* Hero Section Styling */
+.hero-title {
+    color: white;
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
 }
 
-.search-filter-card {
-    background: white;
+.hero-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2rem;
+    font-weight: 400;
+}
+
+/* Search & Filter Section Styling */
+.search-filter-transparent {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     padding: 2rem;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-    border: 1px solid rgba(0,0,0,0.05);
-    position: relative;
-    overflow: hidden;
-}
-
-.search-filter-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
 }
 
 /* Search Input Styling */
@@ -216,20 +220,25 @@
 }
 
 .search-input {
-    border: 2px solid #e5e7eb;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
     padding: 1rem 1rem 1rem 3rem;
     font-size: 1rem;
     transition: all 0.3s ease;
-    background: #f9fafb;
+    background: rgba(255, 255, 255, 0.9);
     direction: rtl;
+    color: #333;
 }
 
 .search-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    background: white;
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
     transform: translateY(-2px);
+}
+
+.search-input::placeholder {
+    color: #666;
 }
 
 .search-icon {
@@ -237,7 +246,7 @@
     right: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #6b7280;
+    color: #666;
     font-size: 1.1rem;
     z-index: 10;
 }
@@ -248,20 +257,21 @@
 }
 
 .category-select {
-    border: 2px solid #e5e7eb;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
     padding: 1rem 3rem 1rem 1rem;
     font-size: 1rem;
-    background: #f9fafb;
+    background: rgba(255, 255, 255, 0.9);
     appearance: none;
     transition: all 0.3s ease;
     direction: rtl;
+    color: #333;
 }
 
 .category-select:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-    background: white;
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.95);
     transform: translateY(-2px);
 }
 
@@ -270,7 +280,7 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #6b7280;
+    color: #666;
     pointer-events: none;
     font-size: 0.9rem;
 }
@@ -278,42 +288,48 @@
 /* Filter Actions */
 .filter-actions {
     display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
+    gap: 0.5rem;
+    justify-content: center;
 }
 
 .filter-btn {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    border: none;
-    border-radius: 15px;
-    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    padding: 0.8rem 1.5rem;
     font-weight: 600;
     color: white;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+    backdrop-filter: blur(10px);
+    font-size: 0.9rem;
 }
 
 .filter-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    color: white;
 }
 
 .reset-btn {
-    border: 2px solid #e5e7eb;
-    border-radius: 15px;
-    padding: 1rem 2rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
     font-weight: 600;
-    color: #6b7280;
-    background: white;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    min-width: 50px;
 }
 
 .reset-btn:hover {
-    border-color: #f87171;
-    color: #ef4444;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
+    border-color: rgba(248, 113, 113, 0.6);
+    color: #f87171;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Active Filters */
@@ -361,8 +377,8 @@
 
 /* Responsive Design */
 @@media (max-width: 768px) {
-    .search-filter-card {
-        padding: 1.5rem;
+    .search-filter-transparent {
+        padding: 1rem;
         border-radius: 15px;
     }
     
@@ -435,6 +451,7 @@
     filter: grayscale(30%);
 }
 
+/* Original Add to Cart Button Styling */
 .add-to-cart-btn {
     cursor: pointer;
     transition: transform 0.2s ease;
@@ -447,6 +464,44 @@
 .product-item-wrapper:has(.unavailable-badge) .add-to-cart-btn {
     pointer-events: none;
     opacity: 0.5;
+}
+
+/* Enhanced product spacing and button visibility */
+.product-item-wrapper {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+}
+
+.product-item {
+    padding-bottom: 3rem;
+    position: relative;
+    display: block;
+}
+
+/* Ensure add to cart button is clearly visible */
+.icon-cross {
+    bottom: 15px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.icon-cross:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transform: scale(1.1);
+}
+
+.icon-cross img {
+    width: 20px;
+    height: 20px;
 }
 </style>
 
@@ -474,20 +529,91 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add to cart button click handlers
-    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const productId = this.dataset.productId;
-            const productName = this.dataset.productName;
-            const productPrice = this.dataset.productPrice;
-            
-            addToCart(productId, productName, productPrice);
-        });
-    });
+    // Note: Button click is now handled via inline onclick to prevent event conflicts
 });
+
+function addToCartShop(productId, productName) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    $.ajax({
+        url: '/Cart/AddToCart',
+        type: 'POST',
+        headers: {
+            'RequestVerificationToken': token
+        },
+        data: {
+            ProductId: productId,
+            Quantity: 1
+        }
+    })
+    .done(function(response) {
+        if (response.success) {
+            showToast(`تمت إضافة '${productName}' إلى عربة التسوق بنجاح!`, 'success');
+            updateCartCount();
+        } else {
+            if (response.message.includes('log in') || response.message.includes('تسجيل الدخول')) {
+                showToast('تعذر إضافة المنتج للسلة، يرجى تسجيل الدخول', 'danger');
+            } else {
+                showToast(response.message || 'فشل في إضافة المنتج.', 'error');
+            }
+        }
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('AJAX Error:', textStatus, errorThrown, jqXHR.responseText);
+        showToast('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.', 'error');
+    });
+}
+
+// New function to handle add to cart from button with proper error handling
+function addToCartFromButton(element) {
+    // Check if element has disabled styling (for unavailable products)
+    if (element.style.pointerEvents === 'none') {
+        showToast('هذا المنتج غير متوفر حالياً', 'error');
+        return;
+    }
+    
+    const productId = element.getAttribute('data-product-id');
+    const productName = element.getAttribute('data-product-name');
+    const productPrice = element.getAttribute('data-product-price');
+    
+    console.log('Shop - Element clicked:', element);
+    console.log('Shop - Product ID:', productId, 'Type:', typeof productId);
+    console.log('Shop - Product Name:', productName);
+    console.log('Shop - Product Price:', productPrice);
+    
+    if (!productId || productId === '0' || productId === 0 || productId === '') {
+        console.error('Invalid product ID:', productId);
+        showToast('خطأ: معرف المنتج غير صحيح', 'error');
+        return;
+    }
+    
+    // Convert to number to ensure it's valid
+    const numericProductId = parseInt(productId);
+    if (isNaN(numericProductId) || numericProductId <= 0) {
+        console.error('Invalid numeric product ID:', numericProductId);
+        showToast('خطأ: معرف المنتج غير صحيح', 'error');
+        return;
+    }
+    
+    addToCartShop(numericProductId, productName);
+}
+
+function updateCartCount() {
+    fetch('/Cart/GetCartCount')
+        .then(response => response.json())
+        .then(data => {
+            const cartBadge = document.querySelector('#cart-count');
+            if (cartBadge) {
+                cartBadge.textContent = data.count;
+                if (data.count > 0) {
+                    cartBadge.style.display = 'inline';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error('Error updating cart count:', error));
+}
 
 function loadWishlistStates() {
     document.querySelectorAll('.wishlist-btn').forEach(button => {
@@ -507,78 +633,70 @@ function loadWishlistStates() {
 }
 
 function addToWishlist(productId, icon) {
-    fetch('/Wishlist/Add', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-        },
-        body: JSON.stringify({ productId: parseInt(productId) })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            icon.classList.remove('text-muted');
-            icon.classList.add('text-danger');
-            updateWishlistCount();
-            showToast('Product added to wishlist!', 'success');
-        } else {
-            if (data.message && data.message.includes('log in')) {
-                // Redirect to login page
-                window.location.href = '/Account/Auth';
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    $.post('/Wishlist/AddToWishlist', { productId: parseInt(productId), __RequestVerificationToken: token })
+        .done(function(data) {
+            if (data && data.success) {
+                icon.classList.remove('text-muted');
+                icon.classList.add('text-danger');
+                updateWishlistCount();
+                showToast('تم إضافة المنتج إلى قائمة الرغبات!', 'success');
             } else {
-                showToast(data.message || 'Failed to add to wishlist', 'error');
+                if (data && data.message && (data.message.includes('log in') || data.message.includes('تسجيل الدخول'))) {
+                    showToast('تعذر إضافة المنتج إلى المفضلة، يرجى تسجيل الدخول', 'danger');
+                } else {
+                    showToast((data && data.message) || 'فشل في إضافة المنتج إلى قائمة الرغبات', 'error');
+                }
             }
-        }
-    })
-    .catch(error => {
-        console.error('Error adding to wishlist:', error);
-        showToast('An error occurred', 'error');
-    });
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('Error adding to wishlist:', textStatus, errorThrown, jqXHR.responseText);
+            showToast('حدث خطأ أثناء الإضافة', 'error');
+        });
 }
 
 function removeFromWishlist(productId, icon) {
-    fetch('/Wishlist/Remove', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-        },
-        body: JSON.stringify({ productId: parseInt(productId) })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            icon.classList.remove('text-danger');
-            icon.classList.add('text-muted');
-            updateWishlistCount();
-            showToast('Product removed from wishlist!', 'success');
-        } else {
-            showToast(data.message || 'Failed to remove from wishlist', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error removing from wishlist:', error);
-        showToast('An error occurred', 'error');
-    });
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    $.post('/Wishlist/RemoveFromWishlist', { productId: parseInt(productId), __RequestVerificationToken: token })
+        .done(function(data) {
+            if (data && data.success) {
+                icon.classList.remove('text-danger');
+                icon.classList.add('text-muted');
+                updateWishlistCount();
+                showToast('تم إزالة المنتج من قائمة الرغبات!', 'success');
+            } else {
+                showToast((data && data.message) || 'فشل في إزالة المنتج من قائمة الرغبات', 'error');
+            }
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('Error removing from wishlist:', textStatus, errorThrown, jqXHR.responseText);
+            showToast('حدث خطأ أثناء الإزالة', 'error');
+        });
 }
 
-function addToCart(productId, productName, productPrice) {
+function addToCartShop(productId, productName) {
+    console.log('Shop - Adding product to cart:', productId, productName);
+    
     const requestData = {
         ProductId: parseInt(productId),
         Quantity: 1
     };
 
-    fetch('/Cart/AddToCart', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+    const token = $('input[name="__RequestVerificationToken"]').val();
+    
+    $.ajax({
+        url: '/Cart/AddToCart',
+        type: 'POST',
+        data: {
+            ProductId: parseInt(productId),
+            Quantity: 1,
+            __RequestVerificationToken: token
         },
-        body: JSON.stringify(requestData)
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
-    .then(response => response.json())
-    .then(data => {
+    .done(function(data) {
         if (data.success) {
             updateCartCount();
             showToast(`تم إضافة ${productName} إلى السلة بنجاح!`, 'success');
@@ -595,13 +713,13 @@ function addToCart(productId, productName, productPrice) {
             }
         } else {
             if (data.message && data.message.includes('تسجيل الدخول')) {
-                window.location.href = '/Account/Auth';
+                showToast('تعذر إضافة المنتج للسلة، يرجى تسجيل الدخول', 'danger');
             } else {
                 showToast(data.message || 'فشل في إضافة المنتج للسلة', 'error');
             }
         }
     })
-    .catch(error => {
+    .fail(function(xhr, status, error) {
         console.error('Error adding to cart:', error);
         showToast('حدث خطأ أثناء إضافة المنتج للسلة', 'error');
     });

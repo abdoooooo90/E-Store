@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using DAL.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace E_LapShop.Controllers
 {
-    [Authorize]
     public class CartController : Controller
     {
         private readonly ICartItemService _cartItemService;
@@ -29,7 +29,10 @@ namespace E_LapShop.Controllers
         {
             var userId = _userManager.GetUserId(User);
             if (userId == null)
-                return RedirectToAction("Auth", "Account");
+            {
+                // Show empty cart page for non-authenticated users
+                return View(new List<CartItemDto>());
+            }
 
             var cartItems = await _cartItemService.GetUserCartAsync(userId);
             ViewBag.CartTotal = cartItems?.Sum(x => x.Total) ?? 0;
@@ -37,13 +40,20 @@ namespace E_LapShop.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddToCart([FromBody] CartAddRequest request)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToCart(CartAddRequest request)
         {
             try
             {
                 var userId = _userManager.GetUserId(User);
                 if (userId == null)
-                    return Json(new { success = false, message = "يرجى تسجيل الدخول لإضافة المنتجات إلى العربة." });
+                {
+                    // Check if it's an AJAX request
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = "يرجى تسجيل الدخول لإضافة المنتجات إلى العربة." });
+                    
+                    return RedirectToAction("Auth", "Account");
+                }
 
                 var dto = new CartItemCreateDto
                 {
@@ -52,24 +62,44 @@ namespace E_LapShop.Controllers
                     Quantity = request.Quantity
                 };
 
+                _logger.LogInformation($"Attempting to add product {request.ProductId} (quantity: {request.Quantity}) to cart for user {userId}");
+                
                 var result = await _cartItemService.AddToCartAsync(dto);
                 
                 if (result)
                 {
-                    // Log successful addition for debugging
-                    _logger.LogInformation($"Product {request.ProductId} added to cart for user {userId}");
-                    return Json(new { success = true, message = "تم إضافة المنتج للسلة بنجاح" });
+                    _logger.LogInformation($"Product {request.ProductId} successfully added to cart for user {userId}");
+                    
+                    // Check if it's an AJAX request
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = true, message = "تم إضافة المنتج للسلة بنجاح" });
+                    
+                    // For regular form submission, redirect to shop
+                    TempData["Success"] = "تم إضافة المنتج للسلة بنجاح";
+                    return RedirectToAction("Shop", "Furni");
                 }
                 else
                 {
-                    _logger.LogWarning($"Failed to add product {request.ProductId} to cart for user {userId}");
-                    return Json(new { success = false, message = "فشل في إضافة المنتج للسلة - قد يكون المخزون غير كافي" });
+                    _logger.LogWarning($"Failed to add product {request.ProductId} to cart for user {userId} - service returned false");
+                    
+                    // Check if it's an AJAX request
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = "فشل في إضافة المنتج للسلة - قد يكون المخزون غير كافي" });
+                    
+                    TempData["Error"] = "فشل في إضافة المنتج للسلة - قد يكون المخزون غير كافي";
+                    return RedirectToAction("Shop", "Furni");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding product to cart");
-                return Json(new { success = false, message = "حدث خطأ أثناء إضافة المنتج إلى العربة." });
+                _logger.LogError(ex, $"Error adding product {request.ProductId} to cart for user {_userManager.GetUserId(User)}: {ex.Message}");
+                
+                // Check if it's an AJAX request
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, message = ex.Message });
+                
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Shop", "Furni");
             }
         }
 
@@ -78,6 +108,31 @@ namespace E_LapShop.Controllers
         {
             try
             {
+                // Get the cart item to check product stock
+                var cartItem = await _cartItemService.GetByIdAsync(id);
+                if (cartItem == null)
+                {
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = "Cart item not found" });
+                    
+                    TempData["Error"] = "Cart item not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Check if requested quantity exceeds available stock
+                if (quantity > cartItem.ProductStock)
+                {
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { 
+                            success = false, 
+                            message = $"Cannot add more items. Only {cartItem.ProductStock} items available in stock.",
+                            maxQuantity = cartItem.ProductStock
+                        });
+                    
+                    TempData["Error"] = $"Cannot add more items. Only {cartItem.ProductStock} items available in stock.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 var result = await _cartItemService.UpdateQuantityAsync(id, quantity);
                 
                 if (result)
@@ -201,8 +256,29 @@ namespace E_LapShop.Controllers
             }
 
             var cartTotal = await _cartItemService.GetCartTotalAsync(userId);
+            
+            // Get discount information from session
+            var couponCode = HttpContext.Session.GetString("CouponCode");
+            var discountPercentageStr = HttpContext.Session.GetString("DiscountPercentage");
+            var discountAmountStr = HttpContext.Session.GetString("DiscountAmount");
+            
+            decimal discountAmount = 0;
+            int discountPercentage = 0;
+            decimal finalTotal = cartTotal;
+            
+            if (!string.IsNullOrEmpty(couponCode) && !string.IsNullOrEmpty(discountAmountStr))
+            {
+                decimal.TryParse(discountAmountStr, out discountAmount);
+                int.TryParse(discountPercentageStr, out discountPercentage);
+                finalTotal = cartTotal - discountAmount;
+            }
+            
             ViewBag.CartTotal = cartTotal;
             ViewBag.CartItems = cartItems;
+            ViewBag.CouponCode = couponCode;
+            ViewBag.DiscountPercentage = discountPercentage;
+            ViewBag.DiscountAmount = discountAmount;
+            ViewBag.FinalTotal = finalTotal;
             
             return View();
         }
@@ -225,8 +301,15 @@ namespace E_LapShop.Controllers
                     return Json(new { success = false, message = "السلة فارغة" });
                 }
 
-                // Calculate total
-                var totalAmount = cartItems.Sum(item => item.Total);
+                // Calculate total with discount
+                var cartTotal = cartItems.Sum(item => item.Total);
+                var discountAmountStr = HttpContext.Session.GetString("DiscountAmount");
+                decimal discountAmount = 0;
+                if (!string.IsNullOrEmpty(discountAmountStr))
+                {
+                    decimal.TryParse(discountAmountStr, out discountAmount);
+                }
+                var totalAmount = cartTotal - discountAmount;
 
                 // Create shipping address DTO
                 var shippingAddressDto = new ShippingAddressDto
@@ -262,13 +345,18 @@ namespace E_LapShop.Controllers
                     // Log successful order creation
                     _logger.LogInformation($"Order {createdOrder.Id} created successfully for user {userId}");
 
-                    // Clear cart after successful order
+                    // Clear cart and discount session after successful order
                     foreach (var item in cartItems)
                     {
                         await _cartItemService.DeleteAsync(item.Id);
                     }
+                    
+                    // Clear discount session data
+                    HttpContext.Session.Remove("CouponCode");
+                    HttpContext.Session.Remove("DiscountPercentage");
+                    HttpContext.Session.Remove("DiscountAmount");
 
-                    return Json(new { success = true, message = "تم إنشاء الطلب بنجاح", orderId = createdOrder.Id });
+                    return Json(new { success = true, message = "تم إنشاء الطلب بنجاح", orderId = createdOrder.Id, redirectUrl = Url.Action("ThankYou", "Cart") });
                 }
                 else
                 {
@@ -292,6 +380,69 @@ namespace E_LapShop.Controllers
 
             return View(order);
         }
+
+        public IActionResult ThankYou()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ApplyCoupon(string couponCode)
+        {
+            try
+            {
+                var userId = _userManager.GetUserId(User);
+                if (userId == null)
+                {
+                    return Json(new { success = false, message = "Please log in to apply a coupon." });
+                }
+
+                if (string.IsNullOrWhiteSpace(couponCode))
+                {
+                    return Json(new { success = false, message = "Please enter a coupon code." });
+                }
+
+                // Accept ITI10, ITI20, ITI30, ITI40, ITI50, ITI60 only
+                var regex = new System.Text.RegularExpressions.Regex(@"^ITI(10|20|30|40|50|60)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                var match = regex.Match(couponCode);
+
+                if (!match.Success)
+                {
+                    // Clear any existing coupon session data for invalid coupons
+                    HttpContext.Session.Remove("CouponCode");
+                    HttpContext.Session.Remove("DiscountPercentage");
+                    HttpContext.Session.Remove("DiscountAmount");
+                    
+                    return Json(new { success = false, message = "Invalid coupon code. Allowed: ITI10, ITI20, ITI30, ITI40, ITI50, ITI60." });
+                }
+
+                var discountPercentage = int.Parse(match.Groups[1].Value);
+                var discountRate = discountPercentage / 100.0m;
+
+                var cartTotal = await _cartItemService.GetCartTotalAsync(userId);
+                var discountAmount = cartTotal * discountRate;
+                var newTotal = cartTotal - discountAmount;
+
+                // Store discount information in session
+                HttpContext.Session.SetString("CouponCode", couponCode.ToUpper());
+                HttpContext.Session.SetString("DiscountPercentage", discountPercentage.ToString());
+                HttpContext.Session.SetString("DiscountAmount", discountAmount.ToString("F2"));
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Coupon '{couponCode.ToUpper()}' applied successfully! ({discountPercentage}% OFF)",
+                    discountAmount = discountAmount,
+                    newTotal = newTotal
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error applying coupon {couponCode}", couponCode);
+                return Json(new { success = false, message = "An error occurred while applying the coupon." });
+            }
+        }
+
     }
 
     public class CartAddRequest

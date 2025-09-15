@@ -32,8 +32,17 @@
                     </div>
                     <div class="thumbnail-images">
                         <div class="row">
-                            <div class="col-12">
+                            <div class="col-3">
                                 <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded thumbnail-img active" onclick="changeMainImage(this.src)">
+                            </div>
+                            <div class="col-3">
+                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
+                            </div>
+                            <div class="col-3">
+                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
+                            </div>
+                            <div class="col-3">
+                                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded thumbnail-img" onclick="changeMainImage(this.src)">
                             </div>
                         </div>
                     </div>
@@ -81,7 +90,17 @@
                                 <strong>Availability:</strong> 
                                 @if (Model.Stock > 0)
                                 {
-                                    <span class="text-success">In Stock (@Model.Stock available)</span>
+                                    @if (Model.Stock < 10)
+                                    {
+                                        <span class="text-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            Only @Model.Stock left in stock!
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success">In Stock</span>
+                                    }
                                 }
                                 else
                                 {
@@ -118,68 +137,31 @@
                             <div class="col-12 mb-3">
                                 @if (Model.IsAvailable && Model.Stock > 0)
                                 {
-                                    @if (User.Identity?.IsAuthenticated == true)
-                                    {
-                                        <button class="btn btn-lg w-100 add-to-cart-btn" data-product-id="@Model.Id" style="background-color: #3b5d50; color: white; border: none;">
-                                            <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                    @Html.AntiForgeryToken()
+                                    <div class="d-grid gap-2">
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-lg btn-primary add-to-cart-btn"
+                                            style="background-color: #3b5d50; border: none;"
+                                            data-product-id="@Model.Id"
+                                            data-product-name="@Model.Name"
+                                            data-available-stock="@Model.Stock">
+                                            <i class="fas fa-shopping-cart me-2"></i>إضافة إلى السلة
                                         </button>
-                                    }
-                                    else
-                                    {
-                                        <a href="@Url.Action("Auth", "Account")" class="btn btn-lg w-100" style="background-color: #3b5d50; color: white; border: none;">
-                                            <i class="fas fa-shopping-cart me-2"></i>Login to Add to Cart
-                                        </a>
-                                    }
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-outline-danger wishlist-toggle"
+                                            data-product-id="@Model.Id">
+                                            <i class="fas fa-heart me-2"></i>إضافة إلى المفضلة
+                                        </button>
+                                    </div>
                                 }
                                 else
                                 {
-                                    <button class="btn btn-lg w-100" disabled style="background-color: #6c757d; color: white; border: none;">
-                                        <i class="fas fa-clock me-2"></i>Currently Unavailable - Available Soon
+                                    <button type="button" class="btn btn-lg w-100" style="background-color: #6c757d; color: white; border: none;" disabled>
+                                        <i class="fas fa-ban me-2"></i>غير متوفر حالياً
                                     </button>
                                 }
-                            </div>
-                            <div class="col-12 mb-3">
-                                @if (User.Identity?.IsAuthenticated == true)
-                                {
-                                    <button class="btn btn-lg w-100 wishlist-btn" data-product-id="@Model.Id" style="background-color: #f9bf29; color: #2f2f2f; border: none;">
-                                        <i class="fas fa-heart me-2" style="color: #ccc;"></i>Add to Wishlist
-                                    </button>
-                                }
-                                else
-                                {
-                                    <a href="@Url.Action("Auth", "Account")" class="btn btn-lg w-100" style="background-color: #f9bf29; color: #2f2f2f; border: none;">
-                                        <i class="fas fa-heart me-2"></i>Login to Add to Wishlist
-                                    </a>
-                                }
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="product-features">
-                        <div class="row">
-                            <div class="col-6 col-md-3 text-center mb-3">
-                                <div class="feature-icon mb-2">
-                                    <img src="~/furni/images/truck.svg" alt="Free Shipping" class="img-fluid" style="width: 30px;">
-                                </div>
-                                <small class="text-muted">Free Shipping</small>
-                            </div>
-                            <div class="col-6 col-md-3 text-center mb-3">
-                                <div class="feature-icon mb-2">
-                                    <img src="~/furni/images/return.svg" alt="Easy Returns" class="img-fluid" style="width: 30px;">
-                                </div>
-                                <small class="text-muted">Easy Returns</small>
-                            </div>
-                            <div class="col-6 col-md-3 text-center mb-3">
-                                <div class="feature-icon mb-2">
-                                    <img src="~/furni/images/support.svg" alt="24/7 Support" class="img-fluid" style="width: 30px;">
-                                </div>
-                                <small class="text-muted">24/7 Support</small>
-                            </div>
-                            <div class="col-6 col-md-3 text-center mb-3">
-                                <div class="feature-icon mb-2">
-                                    <i class="fas fa-shield-alt text-success" style="font-size: 30px;"></i>
-                                </div>
-                                <small class="text-muted">Secure Payment</small>
                             </div>
                         </div>
                     </div>
@@ -477,6 +459,7 @@
 }
 </style>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 function changeMainImage(src) {
     document.getElementById('mainProductImage').src = src;
@@ -489,26 +472,16 @@ function changeMainImage(src) {
 }
 
 function increaseQuantity() {
-    const quantityInput = document.getElementById('quantity');
-    const currentValue = parseInt(quantityInput.value);
-    if (currentValue < 10) {
-        quantityInput.value = currentValue + 1;
-    }
+    const input = document.getElementById('quantity');
+    const max = parseInt(input.getAttribute('max')) || 99;
+    const val = parseInt(input.value) || 1;
+    if (val < max) input.value = val + 1;
 }
 
 function decreaseQuantity() {
-    const quantityInput = document.getElementById('quantity');
-    const currentValue = parseInt(quantityInput.value);
-    if (currentValue > 1) {
-        quantityInput.value = currentValue - 1;
-    }
-}
-
-function viewProductDetails() {
-    // Scroll to product details tabs
-    document.getElementById('productTabs').scrollIntoView({ 
-        behavior: 'smooth' 
-    });
+    const input = document.getElementById('quantity');
+    const val = parseInt(input.value) || 1;
+    if (val > 1) input.value = val - 1;
 }
 
 function contactSeller() {
@@ -516,83 +489,96 @@ function contactSeller() {
     window.location.href = '@Url.Action("Contact", "Furni")';
 }
 
-// Wishlist and Cart functionality
+// Wishlist and Cart functionality (clean handlers)
 $(document).ready(function() {
-    // Load wishlist status on page load
-    loadWishlistStatus();
+    // Initialize counts on load
     updateWishlistCount();
     updateCartCount();
 
-    // Wishlist functionality
-    $('.wishlist-btn').on('click', function(e) {
+    const getToken = () => $('input[name="__RequestVerificationToken"]').val();
+
+    // Wishlist toggle
+    $('.wishlist-toggle').off('click').on('click', function(e) {
         e.preventDefault();
-        
-        const productId = $(this).data('product-id');
-        const heartIcon = $(this).find('i');
-        const isInWishlist = heartIcon.hasClass('text-danger');
-        
-        if (isInWishlist) {
-            // Remove from wishlist
-            $.post('@Url.Action("RemoveFromWishlist", "Wishlist")', { productId: productId })
-                .done(function(response) {
-                    if (response.success) {
-                        heartIcon.removeClass('text-danger').css('color', '#ccc');
-                        $(this).html('<i class="fas fa-heart me-2" style="color: #ccc;"></i>Add to Wishlist');
-                        showToast('تم إزالة المنتج من قائمة الأمنيات', 'success');
-                        updateWishlistCount();
-                    } else {
-                        showToast('خطأ في إزالة المنتج من قائمة الأمنيات', 'error');
-                    }
-                }.bind(this))
-                .fail(function() {
-                    showToast('خطأ في الاتصال', 'error');
-                });
-        } else {
-            // Add to wishlist
-            $.post('@Url.Action("AddToWishlist", "Wishlist")', { productId: productId })
-                .done(function(response) {
-                    if (response.success) {
-                        heartIcon.addClass('text-danger').css('color', '#dc3545');
-                        $(this).html('<i class="fas fa-heart me-2 text-danger"></i>Remove from Wishlist');
-                        showToast('تم إضافة المنتج إلى قائمة الأمنيات', 'success');
-                        updateWishlistCount();
-                    } else {
-                        showToast('خطأ في إضافة المنتج إلى قائمة الأمنيات', 'error');
-                    }
-                }.bind(this))
-                .fail(function() {
-                    showToast('خطأ في الاتصال', 'error');
-                });
-        }
+        const btn = $(this);
+        const pid = btn.data('product-id');
+        const isActive = btn.find('i').hasClass('text-danger');
+        const url = isActive ? '@Url.Action("RemoveFromWishlist", "Wishlist")' : '@Url.Action("AddToWishlist", "Wishlist")';
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: { productId: pid, __RequestVerificationToken: getToken() }
+        }).done(function(resp){
+            if (resp.success) {
+                if (isActive) {
+                    btn.find('i').removeClass('text-danger');
+                    btn.removeClass('btn-danger').addClass('btn-outline-danger');
+                    btn.contents().filter(function(){return this.nodeType===3;}).remove();
+                    btn.append(' إضافة إلى المفضلة');
+                    showToast('تم إزالة المنتج من المفضلة', 'success');
+                } else {
+                    btn.find('i').addClass('text-danger');
+                    btn.removeClass('btn-outline-danger').addClass('btn-danger');
+                    btn.contents().filter(function(){return this.nodeType===3;}).remove();
+                    btn.append(' تمّت الإضافة إلى المفضلة');
+                    showToast('تم إضافة المنتج إلى المفضلة', 'success');
+                }
+                updateWishlistCount();
+            } else {
+                showToast(resp.message || 'تعذر تنفيذ العملية على المفضلة', 'error');
+            }
+        }).fail(function(){
+            showToast('خطأ في الاتصال', 'error');
+        });
     });
 
-    // Add to cart functionality
-    $('.add-to-cart-btn').on('click', function(e) {
+    // Add to cart
+    $('.add-to-cart-btn').off('click').on('click', function(e){
         e.preventDefault();
-        
-        const productId = $(this).data('product-id');
-        const quantity = parseInt($('#quantity').val()) || 1;
-        
+        const btn = $(this);
+        const pid = parseInt(btn.data('product-id'));
+        const pname = btn.data('product-name');
+        const qty = parseInt($('#quantity').val()) || 1;
+        const max = parseInt(btn.data('available-stock')) || 99;
+        if (!pid || qty < 1) { showToast('بيانات المنتج غير صالحة', 'error'); return; }
+        if (qty > max) { showToast('الكمية المطلوبة تتجاوز المخزون المتاح', 'error'); return; }
+
+        const original = btn.html();
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>جاري الإضافة...');
+
         $.ajax({
-            url: '@Url.Action("AddToCart", "Cart")',
+            url: '/Cart/AddToCart',
             type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ 
-                ProductId: productId,
-                Quantity: quantity
-            }),
-            success: function(response) {
-                if (response.success) {
-                    showToast(response.message || 'تم إضافة المنتج إلى عربة التسوق بنجاح!', 'success');
-                    updateCartCount();
-                } else {
-                    showToast(response.message || 'خطأ في إضافة المنتج إلى العربة', 'error');
+            data: { ProductId: pid, Quantity: qty, __RequestVerificationToken: getToken() }
+        }).done(function(resp){
+            if (resp.success) {
+                showToast(`تمت إضافة '${pname}' إلى السلة بنجاح`, 'success');
+                updateCartCount();
+                setTimeout(function(){
+                    window.location.href = '@Url.Action("Index", "Cart")';
+                }, 800);
+            } else {
+                // إذا كانت الرسالة تطلب تسجيل الدخول، نوجّه لصفحة الدخول
+                if (resp.message && (resp.message.includes('تسجيل الدخول') || resp.message.toLowerCase().includes('login'))) {
+                    window.location.href = '@Url.Action("Auth", "Account")';
+                    return;
                 }
-            },
-            error: function() {
-                showToast('خطأ في الاتصال', 'error');
+                showToast(resp.message || 'تعذر إضافة المنتج للسلة', 'error');
             }
+        }).fail(function(jqXHR, textStatus, errorThrown){
+            console.error('AJAX Error:', textStatus, errorThrown);
+            showToast('حدث خطأ في الاتصال', 'error');
+        }).always(function(){
+            btn.prop('disabled', false).html(original);
         });
+    });
+    
+    // Update hidden quantity when visible quantity changes
+    $('#quantity').on('change', function() {
+        const hiddenQuantity = document.getElementById('hiddenQuantity');
+        if (hiddenQuantity) {
+            hiddenQuantity.value = $(this).val();
+        }
     });
 
     // Related products wishlist functionality
@@ -600,17 +586,25 @@ $(document).ready(function() {
         e.preventDefault();
         e.stopPropagation();
         
-        const productId = $(this).data('product-id');
-        const heartIcon = $(this).find('i');
+        const button = $(this);
+        const productId = button.data('product-id');
+        const heartIcon = button.find('i');
         const isInWishlist = heartIcon.hasClass('text-danger');
+        const token = $('input[name="__RequestVerificationToken"]').val();
         
         if (isInWishlist) {
             // Remove from wishlist
-            $.post('@Url.Action("RemoveFromWishlist", "Wishlist")', { productId: productId })
-                .done(function(response) {
+            $.ajax({
+                url: '@Url.Action("RemoveFromWishlist", "Wishlist")',
+                type: 'POST',
+                data: { 
+                    productId: productId,
+                    __RequestVerificationToken: token
+                },
+                success: function(response) {
                     if (response.success) {
                         heartIcon.removeClass('text-danger').addClass('text-muted');
-                        showToast('Product removed from wishlist', 'success');
+                        showToast('تم إزالة المنتج من قائمة الأمنيات', 'success');
                         updateWishlistCount();
                     } else {
                         showToast('Error removing product from wishlist', 'error');
@@ -621,19 +615,26 @@ $(document).ready(function() {
                 });
         } else {
             // Add to wishlist
-            $.post('@Url.Action("AddToWishlist", "Wishlist")', { productId: productId })
-                .done(function(response) {
+            $.ajax({
+                url: '@Url.Action("AddToWishlist", "Wishlist")',
+                type: 'POST',
+                data: { 
+                    productId: productId,
+                    __RequestVerificationToken: token
+                },
+                success: function(response) {
                     if (response.success) {
                         heartIcon.removeClass('text-muted').addClass('text-danger');
-                        showToast('Product added to wishlist', 'success');
+                        showToast('تم إضافة المنتج إلى قائمة الأمنيات', 'success');
                         updateWishlistCount();
                     } else {
-                        showToast('Error adding product to wishlist', 'error');
+                        showToast('خطأ في إضافة المنتج إلى قائمة الأمنيات', 'error');
                     }
-                })
-                .fail(function() {
-                    showToast('Connection error', 'error');
-                });
+                },
+                error: function() {
+                    showToast('خطأ في الاتصال', 'error');
+                }
+            });
         }
     });
 

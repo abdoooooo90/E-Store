@@ -2,6 +2,8 @@
 using DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace E_LapShop.Controllers
 {
@@ -78,6 +80,18 @@ namespace E_LapShop.Controllers
                     }
                     else
                     {
+                        // Ensure FullName claim exists/updated for UI display
+                        var claims = await _userManager.GetClaimsAsync(user);
+                        var fullNameClaim = claims.FirstOrDefault(c => c.Type == "FullName");
+                        if (fullNameClaim != null)
+                        {
+                            if (fullNameClaim.Value != (user?.FullName ?? string.Empty))
+                                await _userManager.ReplaceClaimAsync(user, fullNameClaim, new Claim("FullName", user?.FullName ?? string.Empty));
+                        }
+                        else
+                        {
+                            await _userManager.AddClaimAsync(user, new Claim("FullName", user?.FullName ?? string.Empty));
+                        }
                         TempData["WelcomeMessage"] = $"مرحباً بك {user?.FullName}! تم تسجيل الدخول بنجاح";
                         return RedirectToAction("Index", "Furni");
                     }
@@ -94,6 +108,68 @@ namespace E_LapShop.Controllers
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Furni");
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return RedirectToAction("Auth");
+
+            var model = new E_LapShop.Models.ProfileViewModel
+            {
+                FullName = user.FullName,
+                Email = user.Email ?? string.Empty,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                Address = user.Address
+            };
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(E_LapShop.Models.ProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return RedirectToAction("Auth");
+
+            user.FullName = model.FullName ?? user.FullName;
+            user.PhoneNumber = model.PhoneNumber;
+            user.Address = model.Address;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = "تم تحديث بيانات الحساب بنجاح";
+                // Update or add FullName claim
+                var claims = await _userManager.GetClaimsAsync(user);
+                var fullNameClaim = claims.FirstOrDefault(c => c.Type == "FullName");
+                if (fullNameClaim != null)
+                {
+                    if (fullNameClaim.Value != (user.FullName ?? string.Empty))
+                        await _userManager.ReplaceClaimAsync(user, fullNameClaim, new Claim("FullName", user.FullName ?? string.Empty));
+                }
+                else
+                {
+                    await _userManager.AddClaimAsync(user, new Claim("FullName", user.FullName ?? string.Empty));
+                }
+                // Refresh sign-in so updated claims/values reflect immediately in UI
+                await _signInManager.RefreshSignInAsync(user);
+                return RedirectToAction(nameof(Profile));
+            }
+
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
+            return View(model);
         }
     }
 }

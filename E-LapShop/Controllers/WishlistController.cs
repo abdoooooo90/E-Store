@@ -93,6 +93,7 @@ namespace E_LapShop.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> AddToWishlist(int productId)
         {
             try
@@ -126,6 +127,7 @@ namespace E_LapShop.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> RemoveFromWishlist(int productId)
         {
             try
@@ -146,6 +148,7 @@ namespace E_LapShop.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> IsInWishlist(int productId)
         {
             try
@@ -165,6 +168,7 @@ namespace E_LapShop.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetWishlistCount()
         {
             try
@@ -205,6 +209,7 @@ namespace E_LapShop.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCount()
         {
             try

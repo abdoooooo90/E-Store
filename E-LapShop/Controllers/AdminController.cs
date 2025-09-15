@@ -174,7 +174,7 @@ namespace E_LapShop.Controllers
                     
                     model.ImageUrl = "/uploads/products/" + uniqueFileName;
                 }
-                // إذا لم يتم رفع صورة جديدة، تحقق من رابط الصورة
+                
                 else
                 {
                     // إذا كان هناك رابط صورة جديد، استخدمه
@@ -282,28 +282,28 @@ namespace E_LapShop.Controllers
         {
             ViewBag.Title = "لوحة التحكم - إدارة متجر الأثاث";
             
-            // إحصائيات سريعة
+              
             var allOrders = await _orderService.GetAllAsync();
             var allProducts = await _productService.GetAllAsync();
             var allCategories = await _categoryService.GetAllAsync();
             var totalUsers = _userManager.Users.Count();
 
-            // حساب الإحصائيات المالية
+            
             var totalRevenue = allOrders.Sum(o => o.TotalAmount);
             var completedOrders = allOrders.Where(o => o.Status?.ToLower() == "delivered").ToList();
             var pendingOrders = allOrders.Where(o => o.Status?.ToLower() == "pending").ToList();
             var thisMonthOrders = allOrders.Where(o => o.OrderDate.Month == DateTime.Now.Month && o.OrderDate.Year == DateTime.Now.Year).ToList();
             var lastMonthOrders = allOrders.Where(o => o.OrderDate.Month == DateTime.Now.AddMonths(-1).Month && o.OrderDate.Year == DateTime.Now.AddMonths(-1).Year).ToList();
 
-            // حساب نسبة النمو
+               
             var thisMonthRevenue = thisMonthOrders.Sum(o => o.TotalAmount);
             var lastMonthRevenue = lastMonthOrders.Sum(o => o.TotalAmount);
             var growthPercentage = lastMonthRevenue > 0 ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0;
 
-            // متوسط قيمة الطلب
+               
             var averageOrderValue = allOrders.Any() ? allOrders.Average(o => o.TotalAmount) : 0;
 
-            // إحصائيات المنتجات
+              
             var lowStockProducts = allProducts.Where(p => p.Stock <= 10 && p.Stock > 0).Count();
             var outOfStockProducts = allProducts.Where(p => p.Stock == 0).Count();
 
@@ -320,7 +320,7 @@ namespace E_LapShop.Controllers
             ViewBag.LowStockProducts = lowStockProducts;
             ViewBag.OutOfStockProducts = outOfStockProducts;
 
-            // بيانات الرسوم البيانية
+           
             ViewBag.SalesChartData = GetSalesChartData(allOrders, "6months");
             ViewBag.CategoryChartData = GetCategoryChartData(allProducts, allCategories);
             ViewBag.MonthlyGrowthData = GetMonthlyGrowthData(allOrders);
@@ -329,7 +329,7 @@ namespace E_LapShop.Controllers
         }
 
 
-        // إدارة الطلبات
+        
         public async Task<IActionResult> Orders()
         {
             ViewBag.Title = "إدارة الطلبات";
@@ -337,7 +337,7 @@ namespace E_LapShop.Controllers
             return View(orders);
         }
 
-        // إدارة الفئات
+         
         public async Task<IActionResult> Categories()
         {
             ViewBag.Title = "إدارة الفئات";
@@ -345,7 +345,7 @@ namespace E_LapShop.Controllers
             return View(categories);
         }
 
-        // إدارة المستخدمين
+    
         public IActionResult Users()
         {
             ViewBag.Title = "إدارة المستخدمين";
@@ -353,7 +353,7 @@ namespace E_LapShop.Controllers
             return View(users);
         }
 
-        // تقارير المبيعات
+          
         public async Task<IActionResult> Sales()
         {
             ViewBag.Title = "تقارير المبيعات";
@@ -361,7 +361,7 @@ namespace E_LapShop.Controllers
             return View(orders);
         }
 
-        // إعدادات المتجر
+          
         public IActionResult Settings()
         {
             ViewBag.Title = "إعدادات المتجر";
@@ -429,7 +429,7 @@ namespace E_LapShop.Controllers
             }
         }
 
-        // Order Management Methods
+        // Ordr  Methods
         [HttpPost]
         public async Task<IActionResult> UpdateOrderStatus([FromBody] UpdateOrderStatusRequest request)
         {
@@ -495,7 +495,6 @@ namespace E_LapShop.Controllers
             }
         }
 
-        // دوال مساعدة لحساب بيانات الرسوم البيانية
         private object GetSalesChartData(IEnumerable<BLL.Models.OrderDtos.OrderDto> orders, string period = "6months")
         {
             var salesData = new List<object>();
@@ -566,7 +565,7 @@ namespace E_LapShop.Controllers
             return growthData;
         }
 
-        // API endpoints لتحديث البيانات ديناميكياً
+             
         [HttpGet]
         public async Task<IActionResult> GetSalesData(string period = "6months")
         {

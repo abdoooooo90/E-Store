@@ -1,0 +1,81 @@
+@{
+    ViewData["Title"] = "Thank You - Furni";
+    Layout = "~/Views/Shared/_FurniLayout.cshtml";
+}
+
+<!-- Start Hero Section -->
+<div class="hero">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-lg-5">
+                <div class="intro-excerpt">
+                    <h1>Cart</h1>
+                </div>
+            </div>
+            <div class="col-lg-7">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Hero Section -->
+
+<!-- Thank You Section -->
+<div class="untree_co-section before-footer-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <!-- Cart Icon -->
+                <div class="mb-5">
+                    <div class="cart-icon-wrapper" style="display: inline-block; width: 120px; height: 120px; background-color: #3b5d50; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 30px;">
+                        <i class="fas fa-shopping-cart" style="font-size: 60px; color: white;"></i>
+                    </div>
+                </div>
+                
+                <!-- Thank You Message -->
+                <h1 class="mb-4" style="font-size: 3rem; font-weight: 600; color: #2f2f2f;">Thank you!</h1>
+                <p class="mb-5" style="font-size: 1.2rem; color: #6c757d;">You order was successfully completed.</p>
+                
+                <!-- Back to Shop Button -->
+                <a href="@Url.Action("Shop", "Furni")" class="btn btn-primary btn-lg px-5 py-3" style="background-color: #3b5d50; border-color: #3b5d50; border-radius: 30px; font-weight: 500;">
+                    Back to shop
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+.cart-icon-wrapper {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary:hover {
+    background-color: #2d4a3e !important;
+    border-color: #2d4a3e !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+.subscription-form .form-control:focus {
+    border-color: #3b5d50;
+    box-shadow: 0 0 0 0.2rem rgba(59, 93, 80, 0.25);
+}
+
+.hero {
+    background: #3b5d50;
+    padding: 7rem 0 12rem 0;
+}
+
+.hero h1 {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 2.5rem;
+}
+
+.before-footer-section {
+    padding: 7rem 0;
+}
+</style>

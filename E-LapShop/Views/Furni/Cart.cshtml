@@ -1,3 +1,5 @@
+@model IEnumerable<BLL.Models.CartItemDtos.CartItemDto>
+
 @{
     ViewData["Title"] = "Cart - Furni";
     Layout = "~/Views/Shared/_FurniLayout.cshtml";
@@ -36,51 +38,52 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="product-thumbnail">
-                                    <img src="~/furni/images/product-1.png" alt="Image" class="img-fluid">
-                                </td>
-                                <td class="product-name">
-                                    <h2 class="h5 text-black">Nordic Chair</h2>
-                                </td>
-                                <td>$50.00</td>
-                                <td>
-                                    <div class="input-group mb-3 d-flex align-items-center quantity-container" style="max-width: 120px;">
-                                        <div class="input-group-prepend">
-                                            <button class="btn btn-outline-black decrease" type="button">&minus;</button>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td class="product-thumbnail">
+                                            <img src="@(!string.IsNullOrEmpty(item.ProductImageUrl) ? item.ProductImageUrl : "~/furni/images/product-1.png")" 
+                                                 alt="@item.ProductName" class="img-fluid" style="width: 80px; height: 80px; object-fit: cover;">
+                                        </td>
+                                        <td class="product-name">
+                                            <h2 class="h5 text-black">@item.ProductName</h2>
+                                        </td>
+                                        <td>@item.ProductPrice.ToString("F2") EGP</td>
+                                        <td>
+                                            <div class="input-group mb-3 d-flex align-items-center quantity-container" style="max-width: 120px;">
+                                                <div class="input-group-prepend">
+                                                    <button class="btn btn-outline-black decrease" type="button" onclick="updateQuantity(@item.Id, (parseInt(this.closest('tr').querySelector('.quantity-amount').value) || @item.Quantity) - 1)">&minus;</button>
+                                                </div>
+                                                <input type="text" class="form-control text-center quantity-amount" value="@item.Quantity" readonly>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-black increase" type="button" onclick="updateQuantity(@item.Id, (parseInt(this.closest('tr').querySelector('.quantity-amount').value) || @item.Quantity) + 1)">&plus;</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@item.Total.ToString("F2") EGP</td>
+                                        <td>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" title="Remove item" onclick="removeFromCart(@item.Id)">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="mb-3">
+                                            <i class="fas fa-shopping-cart fa-3x text-muted"></i>
                                         </div>
-                                        <input type="text" class="form-control text-center quantity-amount" value="1" placeholder="" aria-label="Example text with button addon" aria-describedby="button-addon1">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-outline-black increase" type="button">&plus;</button>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>$50.00</td>
-                                <td><a href="#" class="btn btn-black btn-sm">X</a></td>
-                            </tr>
-
-                            <tr>
-                                <td class="product-thumbnail">
-                                    <img src="~/furni/images/product-2.png" alt="Image" class="img-fluid">
-                                </td>
-                                <td class="product-name">
-                                    <h2 class="h5 text-black">Kruzo Aero Chair</h2>
-                                </td>
-                                <td>$78.00</td>
-                                <td>
-                                    <div class="input-group mb-3 d-flex align-items-center quantity-container" style="max-width: 120px;">
-                                        <div class="input-group-prepend">
-                                            <button class="btn btn-outline-black decrease" type="button">&minus;</button>
-                                        </div>
-                                        <input type="text" class="form-control text-center quantity-amount" value="1" placeholder="" aria-label="Example text with button addon" aria-describedby="button-addon1">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-outline-black increase" type="button">&plus;</button>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>$78.00</td>
-                                <td><a href="#" class="btn btn-black btn-sm">X</a></td>
-                            </tr>
+                                        <h5 class="text-muted">Your cart is empty</h5>
+                                        <p class="text-muted">Add some products to your cart to see them here.</p>
+                                        <a href="@Url.Action("Shop", "Furni")" class="btn btn-primary">Start Shopping</a>
+                                    </td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -94,19 +97,19 @@
                         <button class="btn btn-black btn-sm btn-block">Update Cart</button>
                     </div>
                     <div class="col-md-6">
-                        <button class="btn btn-outline-black btn-sm btn-block">Continue Shopping</button>
+                        <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-black btn-sm btn-block">Continue Shopping</a>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-12">
-                        <label class="text-black h4" for="coupon">Coupon</label>
-                        <p>Enter your coupon code if you have one.</p>
+                        <label class="text-black h4" for="coupon-code">Coupon</label>
+                        @Html.AntiForgeryToken()
                     </div>
                     <div class="col-md-8 mb-3 mb-md-0">
-                        <input type="text" class="form-control py-3" id="coupon" placeholder="Coupon Code">
+                        <input type="text" class="form-control py-3" id="coupon-code" placeholder="Coupon Code">
                     </div>
                     <div class="col-md-4">
-                        <button class="btn btn-black">Apply Coupon</button>
+                        <button class="btn btn-black" type="button" onclick="applyCoupon()">Apply Coupon</button>
                     </div>
                 </div>
             </div>
@@ -123,23 +126,98 @@
                                 <span class="text-black">Subtotal</span>
                             </div>
                             <div class="col-md-6 text-right">
-                                <strong class="text-black">$128.00</strong>
+                                <strong class="text-black" id="cart-subtotal">@(ViewBag.CartTotal?.ToString("F2") ?? "0.00") EGP</strong>
                             </div>
                         </div>
+                        <div class="row mb-3" id="discount-row" style="display: none;">
+                            <div class="col-md-6">
+                                <span class="text-black">Discount</span>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <strong class="text-success" id="discount-amount">-0.00 EGP</strong>
+                            </div>
+                        </div>
+
                         <div class="row mb-5">
                             <div class="col-md-6">
                                 <span class="text-black">Total</span>
                             </div>
                             <div class="col-md-6 text-right">
-                                <strong class="text-black">$128.00</strong>
+                                <strong class="text-black" id="cart-total">@(ViewBag.CartTotal?.ToString("F2") ?? "0.00") EGP</strong>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-12">
-                                <button class="btn btn-black btn-lg py-3 btn-block" onclick="window.location='@Url.Action("Checkout", "Furni")'">Proceed To Checkout</button>
+                                <button class="btn btn-black btn-lg py-3 btn-block" onclick="window.location='@Url.Action("Checkout", "Cart")'">Proceed To Checkout</button>
                             </div>
                         </div>
+
+                        <script>
+                        // Fallback scripts if external CartScript.js is not loaded
+                        if (typeof updateQuantity !== 'function') {
+                            function updateQuantity(cartItemId, newQuantity) {
+                                if (newQuantity < 1) { removeFromCart(cartItemId); return; }
+                                $.ajax({
+                                    url: '/Cart/UpdateQuantity',
+                                    type: 'POST',
+                                    data: { id: cartItemId, quantity: newQuantity },
+                                    success: function (response) { if (response.success) { location.reload(); } else { alert('Error updating cart: ' + response.message); } },
+                                    error: function () { alert('Error updating cart'); }
+                                });
+                            }
+                        }
+                        if (typeof removeFromCart !== 'function') {
+                            function removeFromCart(cartItemId) {
+                                if (confirm('Are you sure you want to remove this item from your cart?')) {
+                                    $.ajax({
+                                        url: '/Cart/Remove',
+                                        type: 'POST',
+                                        data: { id: cartItemId },
+                                        success: function (response) { if (response.success) { location.reload(); } else { alert('Error removing item: ' + response.message); } },
+                                        error: function () { alert('Error removing item from cart'); }
+                                    });
+                                }
+                            }
+                        }
+
+                        // Apply coupon via server (supports ITI10..ITI60)
+                        function applyCoupon() {
+                            var couponCode = $('#coupon-code').val().trim();
+                            if (!couponCode) { alert('Please enter a coupon code'); return; }
+                            var token = $('input[name="__RequestVerificationToken"]').val() || '';
+
+                            $.ajax({
+                                url: '@Url.Action("ApplyCoupon", "Cart")',
+                                type: 'POST',
+                                data: { couponCode: couponCode },
+                                headers: {
+                                    'RequestVerificationToken': token,
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                success: function (response) {
+                                    if (response.success) {
+                                        $('#discount-amount').text('-' + parseFloat(response.discountAmount).toFixed(2) + ' EGP');
+                                        $('#discount-row').show();
+                                        $('#cart-total').text(parseFloat(response.newTotal).toFixed(2) + ' EGP');
+                                    } else {
+                                        alert(response.message || 'Invalid coupon code');
+                                    }
+                                },
+                                error: function (xhr, status, err) {
+                                    console.error('ApplyCoupon AJAX Error:', status, err, xhr.responseText);
+                                    var msg = 'An error occurred while applying the coupon';
+                                    if (xhr && xhr.responseText) {
+                                        try {
+                                            var j = JSON.parse(xhr.responseText);
+                                            if (j && j.message) msg = j.message;
+                                        } catch(e) {}
+                                    }
+                                    alert(msg);
+                                }
+                            });
+                        }
+                        </script>
                     </div>
                 </div>
             </div>

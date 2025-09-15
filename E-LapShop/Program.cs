@@ -8,13 +8,11 @@ using BLL.Services.CategorieServices;
 using BLL.Services.CartItemServices;
 using BLL.Services.WishlistServices;
 using BLL.Services.OrderServices;
-using BLL.Services.ProductImageServices;
 using DAL.Presistance.Repositories.Products;
 using DAL.Presistance.Repositories.Categories;
 using DAL.Presistance.Repositories.CartItems;
 using DAL.Presistance.Repositories.Wishlists;
 using DAL.Presistance.Repositories.Orders;
-using DAL.Presistance.Repositories.ProductImages;
 using DAL.Presistance.Repositories.Payments;
 using DAL.Presistance.UnitOfWork;
 using System.Globalization;
@@ -39,7 +37,6 @@ namespace E_LapShop
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-            builder.Services.AddScoped<IProductImagesRepository, ProdcutImageRepository>();
             builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
             builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
@@ -49,10 +46,17 @@ namespace E_LapShop
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
-            // builder.Services.AddScoped<IProductImageService, ProductImageService>();
             builder.Services.AddScoped<ICartItemService, CartItemService>();
             builder.Services.AddScoped<IWishlistService, WishlistService>();
 
+            // Add in-memory cache and session for storing coupon/discount info
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+                options.IdleTimeout = TimeSpan.FromHours(2);
+            });
 
            
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -87,6 +91,8 @@ namespace E_LapShop
             app.UseStaticFiles();
 
             app.UseRouting();
+            // Enable session before authentication/authorization
+            app.UseSession();
             app.UseAuthentication();
             app.UseAuthorization();
 

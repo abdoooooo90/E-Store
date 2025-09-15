@@ -1,0 +1,65 @@
+@model E_LapShop.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "~/Views/Shared/_FurniLayout.cshtml";
+}
+
+<div class="untree_co-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                        <h4 class="mb-0"><i class="fas fa-user me-2 text-primary"></i>الملف الشخصي</h4>
+                        <a href="@Url.Action("Index", "Furni")" class="btn btn-sm btn-outline-secondary"><i class="fas fa-home me-1"></i>الصفحة الرئيسية</a>
+                    </div>
+                    <div class="card-body">
+                        @if (TempData["Success"] != null)
+                        {
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle me-1"></i>@TempData["Success"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
+
+                        <form asp-action="Profile" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label class="form-label">الاسم الكامل</label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">البريد الإلكتروني</label>
+                                <input asp-for="Email" class="form-control" disabled />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">رقم الموبايل</label>
+                                <input asp-for="PhoneNumber" class="form-control" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">العنوان</label>
+                                <input asp-for="Address" class="form-control" placeholder="مثال: القاهرة، مدينة نصر، شارع المحكمة..." />
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>حفظ التغييرات</button>
+                                <a href="@Url.Action("Index", "Furni")" class="btn btn-outline-secondary">إلغاء</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

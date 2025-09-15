@@ -1,128 +1,541 @@
 @model IEnumerable<BLL.Models.WishlistDtos.WishlistDto>
-
 @{
-    ViewBag.Title = "My Wishlist";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Wishlist - Furni";
+    Layout = "~/Views/Shared/_FurniLayout.cshtml";
 }
 
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-heart text-danger"></i> My Wishlist</h2>
-                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary">
-                    <i class="fas fa-shopping-bag"></i> Continue Shopping
-                </a>
+<!-- Start Hero Section -->
+<div class="hero">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-lg-5">
+                <div class="intro-excerpt">
+                    <h1>Wishlist</h1>
+                    <p class="mb-4">Your favorite products in one place</p>
+                </div>
+            </div>
+            <div class="col-lg-7">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Hero Section -->
+
+<div class="untree_co-section product-section before-footer-section">
+    <div class="container">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-heart text-danger me-2"></i>
+Your Favorite Products (@Model.Count() items)
+                        </h4>
+                        <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-primary">
+                            <i class="fas fa-shopping-bag me-2"></i>
+Continue Shopping
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @TempData["Error"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            @if (Model != null && Model.Any())
-            {
-                <div class="row">
-                    @foreach (var item in Model)
-                    {
-                        <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="card h-100 shadow-sm">
-                                <img src="@(!string.IsNullOrEmpty(item.ProductImageUrl) ? item.ProductImageUrl : "https://dummyimage.com/300x200/dee2e6/6c757d.jpg")" 
-                                     class="card-img-top" alt="@item.ProductName" style="height: 200px; object-fit: cover;">
+            <div class="row equal-height">
+                @foreach (var item in Model)
+                {
+                    <div class="col-12 col-md-4 col-lg-3 mb-5">
+                        <div class="product-item-wrapper position-relative">
+                            <!-- Remove from Wishlist Button -->
+                            <button class="btn position-absolute remove-wishlist-btn" 
+                                    data-product-id="@item.ProductId" 
+                                    title="Remove from Wishlist">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            
+                            <a class="product-item" href="@Url.Action("ProductDetails", "Furni", new { id = item.ProductId })">
+                                <img src="@(!string.IsNullOrEmpty(item.ProductImageUrl) ? item.ProductImageUrl : "~/furni/images/product-1.png")" 
+                                     class="img-fluid product-thumbnail">
+                                <h3 class="product-title">@item.ProductName</h3>
+                                <strong class="product-price">@item.ProductPrice.ToString("F2") EGP</strong>
                                 
-                                <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title">@item.ProductName</h5>
-                                    <p class="text-muted mb-2">@item.ProductBrand</p>
-                                    <div class="mt-auto">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h4 class="text-success mb-0">@item.ProductPrice.ToString("F2") EGP</h4>
-                                            <span class="badge @(item.ProductStock > 0 ? "bg-success" : "bg-danger")">
-                                                @(item.ProductStock > 0 ? "In Stock" : "Out of Stock")
-                                            </span>
-                                        </div>
-                                        
-                                        <small class="text-muted">Added on @item.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                @if (item.ProductStock <= 0)
+                                {
+                                    <div class="unavailable-badge">
+                                        <small class="text-muted">Currently Unavailable</small>
                                     </div>
-                                </div>
-                                
-                                <div class="card-footer bg-transparent">
-                                    <div class="d-grid gap-2">
-                                        @if (item.ProductStock > 0)
-                                        {
-                                            <div class="btn-group" role="group">
-                                                <form asp-action="MoveToCart" method="post" class="d-inline">
-                                                    <input type="hidden" name="id" value="@item.Id" />
-                                                    <input type="hidden" name="quantity" value="1" />
-                                                    <button type="submit" class="btn btn-primary">
-                                                        <i class="fas fa-shopping-cart"></i> Move to Cart
-                                                    </button>
-                                                </form>
-                                                <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId" 
-                                                   class="btn btn-outline-secondary">
-                                                    <i class="fas fa-eye"></i> View
-                                                </a>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId" 
-                                               class="btn btn-outline-secondary">
-                                                <i class="fas fa-eye"></i> View Details
-                                            </a>
-                                        }
-                                        
-                                        <form asp-action="Remove" method="post" class="d-inline" 
-                                              onsubmit="return confirm('Are you sure you want to remove this item from your wishlist?');">
-                                            <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-                                                <i class="fas fa-trash"></i> Remove from Wishlist
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                                }
+                                else
+                                {
+                                    <span class="icon-cross add-to-cart-btn" data-product-id="@item.ProductId" data-product-name="@item.ProductName" data-product-price="@item.ProductPrice">
+                                        <img src="~/furni/images/cross.svg" class="img-fluid">
+                                    </span>
+                                }
+                            </a>
                         </div>
-                    }
-                </div>
-                
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h5>Wishlist Summary</h5>
-                                <p class="mb-2">Total Items: <strong>@Model.Count()</strong></p>
-                                <p class="mb-0">Total Value: <strong>@Model.Sum(x => x.ProductPrice).ToString("F2") EGP</strong></p>
+                    </div>
+                }
+            </div>
+            
+            <!-- Wishlist Summary -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="wishlist-summary-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-2">
+                                    <i class="fas fa-chart-bar me-2"></i>
+Wishlist Summary
+                                </h5>
+                                <p class="text-muted mb-0">Total @Model.Count() items worth @Model.Sum(x => x.ProductPrice).ToString("F2") EGP</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <button class="btn btn-primary btn-lg add-all-to-cart-btn">
+                                    <i class="fas fa-shopping-cart me-2"></i>
+Add All to Cart
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <div class="card">
-                        <div class="card-body">
-                            <i class="fas fa-heart fa-4x text-muted mb-4"></i>
-                            <h3>Your Wishlist is Empty</h3>
-                            <p class="text-muted mb-4">Start adding products you love to your wishlist!</p>
-                            <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">
-                                <i class="fas fa-shopping-bag"></i> Start Shopping
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-12">
+                    <div class="empty-wishlist-card text-center">
+                        <div class="empty-wishlist-content">
+                            <i class="fas fa-heart-broken empty-wishlist-icon"></i>
+                            <h3 class="empty-wishlist-title">Your Wishlist is Empty</h3>
+                            <p class="empty-wishlist-text">Start adding products you love to your wishlist!</p>
+                            <a href="@Url.Action("Shop", "Furni")" class="btn btn-primary btn-lg">
+                                <i class="fas fa-shopping-bag me-2"></i>
+Start Shopping Now
                             </a>
                         </div>
                     </div>
                 </div>
-            }
-        </div>
+            </div>
+        }
     </div>
 </div>
+
+<style>
+/* Wishlist Specific Styles */
+.wishlist-summary-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.empty-wishlist-card {
+    background: white;
+    border-radius: 20px;
+    padding: 4rem 2rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.empty-wishlist-content {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-wishlist-icon {
+    font-size: 4rem;
+    color: #dee2e6;
+    margin-bottom: 2rem;
+}
+
+.empty-wishlist-title {
+    color: #495057;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.empty-wishlist-text {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.remove-wishlist-btn {
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #e9ecef;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.remove-wishlist-btn i {
+    color: #6c757d;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.remove-wishlist-btn:hover {
+    background: #dc3545;
+    border-color: #dc3545;
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.remove-wishlist-btn:hover i {
+    color: white;
+    transform: rotate(90deg);
+}
+
+.remove-wishlist-btn:active {
+    transform: scale(0.95);
+}
+
+.product-item-wrapper:has(.unavailable-badge) .product-item {
+    opacity: 0.7;
+}
+
+.product-item-wrapper:has(.unavailable-badge) .product-thumbnail {
+    filter: grayscale(30%);
+}
+
+.add-to-cart-btn {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.add-to-cart-btn:hover {
+    transform: scale(1.1);
+}
+
+.product-item-wrapper:has(.unavailable-badge) .add-to-cart-btn {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.unavailable-badge {
+    background-color: rgba(108, 117, 125, 0.1);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.add-all-to-cart-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border: none;
+    border-radius: 15px;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+}
+
+.add-all-to-cart-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+@@media (max-width: 768px) {
+    .empty-wishlist-card {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-wishlist-icon {
+        font-size: 3rem;
+    }
+    
+    .empty-wishlist-title {
+        font-size: 1.5rem;
+    }
+    
+    .wishlist-summary-card {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .add-all-to-cart-btn {
+        margin-top: 1rem;
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Remove from wishlist button handlers
+    document.querySelectorAll('.remove-wishlist-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = this.dataset.productId;
+            const productWrapper = this.closest('.product-item-wrapper');
+            
+            // Add loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            this.disabled = true;
+            
+            if (confirm('هل أنت متأكد من إزالة هذا المنتج من قائمة الرغبات؟')) {
+                removeFromWishlist(productId, productWrapper, this);
+            } else {
+                // Reset button if cancelled
+                this.innerHTML = '<i class="fas fa-times"></i>';
+                this.disabled = false;
+            }
+        });
+    });
+
+    // Add to cart button handlers
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = this.dataset.productId;
+            const productName = this.dataset.productName;
+            const productPrice = this.dataset.productPrice;
+            
+            addToCart(productId, productName, productPrice);
+        });
+    });
+
+    // Add all to cart button handler
+    const addAllBtn = document.querySelector('.add-all-to-cart-btn');
+    if (addAllBtn) {
+        addAllBtn.addEventListener('click', function() {
+            const cartButtons = document.querySelectorAll('.add-to-cart-btn');
+            let addedCount = 0;
+            
+            cartButtons.forEach(button => {
+                const productId = button.dataset.productId;
+                const productName = button.dataset.productName;
+                const productPrice = button.dataset.productPrice;
+                
+                setTimeout(() => {
+                    addToCart(productId, productName, productPrice, false);
+                    addedCount++;
+                    
+                    if (addedCount === cartButtons.length) {
+                        showToast(`تم إضافة ${addedCount} منتج إلى السلة بنجاح!`, 'success');
+                        updateCartCount();
+                    }
+                }, addedCount * 200);
+            });
+        });
+    }
+});
+
+function removeFromWishlist(productId, productWrapper, button) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    
+    $.post('/Wishlist/RemoveFromWishlist', { 
+        productId: parseInt(productId), 
+        __RequestVerificationToken: token 
+    })
+    .done(function(data) {
+        if (data && data.success) {
+            // Add success animation
+            productWrapper.style.transform = 'scale(0.8)';
+            productWrapper.style.opacity = '0.5';
+            
+            showToast('تم إزالة المنتج من قائمة الرغبات!', 'success');
+            
+            // Remove the product with animation
+            setTimeout(() => {
+                productWrapper.style.transition = 'all 0.5s ease';
+                productWrapper.style.transform = 'scale(0)';
+                productWrapper.style.opacity = '0';
+                
+                setTimeout(() => {
+                    productWrapper.remove();
+                    
+                    // Check if wishlist is empty and reload if needed
+                    const remainingProducts = document.querySelectorAll('.product-item-wrapper');
+                    if (remainingProducts.length === 0) {
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    }
+                }, 500);
+            }, 800);
+            
+        } else {
+            // Reset button on error
+            button.innerHTML = '<i class="fas fa-times"></i>';
+            button.disabled = false;
+            showToast((data && data.message) || 'فشل في إزالة المنتج من قائمة الرغبات', 'error');
+        }
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Error removing from wishlist:', textStatus, errorThrown, jqXHR.responseText);
+        // Reset button on error
+        button.innerHTML = '<i class="fas fa-times"></i>';
+        button.disabled = false;
+        showToast('حدث خطأ أثناء الإزالة', 'error');
+    });
+}
+
+function addToCartShop(productId, productName) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    $.ajax({
+        url: '/Cart/AddToCart',
+        type: 'POST',
+        headers: {
+            'RequestVerificationToken': token
+        },
+        data: {
+            ProductId: productId,
+            Quantity: 1
+        }
+    })
+    .done(function(response) {
+        if (response.success) {
+            showToast(`تم إضافة ${productName} إلى السلة بنجاح!`, 'success');
+            updateCartCount();
+        } else {
+            if (response.message.includes('log in') || response.message.includes('تسجيل الدخول')) {
+                showToast('يرجى تسجيل الدخول لإضافة المنتجات للسلة', 'danger');
+            } else {
+                showToast(response.message || 'فشل في إضافة المنتج للسلة.', 'error');
+            }
+        }
+    })
+    .fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('AJAX Error:', textStatus, errorThrown, jqXHR.responseText);
+        showToast('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.', 'error');
+    });
+}
+
+// New function to handle add to cart from button with proper error handling
+function addToCartFromButton(element) {
+    // Check if element has disabled styling (for unavailable products)
+    if (element.style.pointerEvents === 'none') {
+        showToast('هذا المنتج غير متوفر حالياً', 'error');
+        return;
+    }
+    
+    const productId = element.getAttribute('data-product-id');
+    const productName = element.getAttribute('data-product-name');
+    const productPrice = element.getAttribute('data-product-price');
+    
+    console.log('Wishlist - Element clicked:', element);
+    console.log('Wishlist - Product ID:', productId, 'Type:', typeof productId);
+    console.log('Wishlist - Product Name:', productName);
+    console.log('Wishlist - Product Price:', productPrice);
+    
+    if (!productId || productId === '0' || productId === 0 || productId === '') {
+        console.error('Invalid product ID:', productId);
+        showToast('خطأ: معرف المنتج غير صحيح', 'error');
+        return;
+    }
+    
+    // Convert to number to ensure it's valid
+    const numericProductId = parseInt(productId);
+    if (isNaN(numericProductId) || numericProductId <= 0) {
+        console.error('Invalid numeric product ID:', numericProductId);
+        showToast('خطأ: معرف المنتج غير صحيح', 'error');
+        return;
+    }
+    
+    addToCartShop(numericProductId, productName);
+}
+
+function addToCart(productId, productName, productPrice, showMessage = true) {
+    addToCartFromButton({
+        getAttribute: function(attr) {
+            if (attr === 'data-product-id') return productId;
+            if (attr === 'data-product-name') return productName;
+            if (attr === 'data-product-price') return productPrice;
+            return null;
+        },
+        style: { pointerEvents: 'auto' }
+    });
+}
+
+function updateCartCount() {
+    fetch('/Cart/GetCartCount')
+        .then(response => response.json())
+        .then(data => {
+            const cartBadge = document.querySelector('#cart-count');
+            if (cartBadge) {
+                cartBadge.textContent = data.count;
+                if (data.count > 0) {
+                    cartBadge.style.display = 'inline';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error('Error updating cart count:', error));
+}
+
+function showToast(message, type) {
+    // Ensure a single container exists for stacking toasts vertically
+    let container = document.getElementById('wishlist-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'wishlist-toast-container';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '9999';
+        container.style.minWidth = '300px';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.gap = '8px';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} shadow-sm mb-0`;
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" onclick="this.closest('.alert').remove()"></button>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-hide after 2 seconds
+    setTimeout(() => {
+        if (toast && toast.parentElement) {
+            toast.remove();
+        }
+        // Remove container if empty to keep DOM clean
+        if (container && container.children.length === 0) {
+            container.remove();
+        }
+    }, 2000);
+}
+</script>

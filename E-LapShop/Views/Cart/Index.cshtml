@@ -1,9 +1,68 @@
 @model IEnumerable<BLL.Models.CartItemDtos.CartItemDto>
 
-@{
-    ViewBag.Title = "Shopping Cart";
-    Layout = "~/Views/Shared/_FurniLayout.cshtml";
+@{ 
+    ViewData["Title"] = "Cart";
+    Layout = "_FurniLayout";
 }
+
+<style>
+ /* Slightly increase numeric text sizes for better readability */
+ .table .price-cell,
+ .table .item-total { font-size: 1.1rem; }
+
+ .quantity-amount { font-size: 1.1rem; }
+
+ #cart-subtotal,
+ #cart-total,
+ #discount-amount { font-size: 1.15rem; }
+
+ /* Remove all spacing between hero and cart table */
+ .untree_co-section.before-footer-section { 
+     padding-top: 0 !important; 
+     margin-top: 0 !important;
+ }
+ .untree_co-section.before-footer-section .container { 
+     padding-top: 0 !important; 
+     margin-top: 0 !important;
+ }
+ .site-blocks-table { 
+     margin-top: 0 !important; 
+     padding-top: 0 !important; 
+ }
+ .site-blocks-table .table { 
+     margin-top: 0 !important; 
+ }
+ .hero { 
+     margin-bottom: 0 !important; 
+     padding-top: 8px !important; 
+     padding-bottom: 0 !important; 
+ }
+ .hero .intro-excerpt { 
+     margin-bottom: 0 !important; 
+ }
+ .hero .intro-excerpt h1 { 
+     margin-bottom: 0 !important; 
+ }
+ .hero .container { 
+     padding-bottom: 0 !important; 
+     margin-bottom: 0 !important;
+ }
+ .hero + .untree_co-section { 
+     margin-top: 0 !important; 
+ }
+ .table thead th { 
+     padding-top: 0 !important; 
+     padding-bottom: 0.15rem !important; 
+     position: relative; 
+     top: -8px; 
+ }
+ 
+ /* Additional spacing removal */
+ .row.mb-2.mt-0 {
+     margin-top: 0 !important;
+     margin-bottom: 0 !important;
+ }
+</style>
 
 <!-- Start Hero Section -->
 <div class="hero">
@@ -15,6 +74,9 @@
                 </div>
             </div>
             <div class="col-lg-7">
+                <div class="hero-img-wrap">
+                    <img src="~/furni/images/couch.png" class="img-fluid">
+                </div>
             </div>
         </div>
     </div>
@@ -41,18 +103,18 @@
 
         @if (Model != null && Model.Any())
         {
-            <div class="row mb-5">
+            <div class="row mb-2 mt-0">
                 <form class="col-md-12" method="post">
                     <div class="site-blocks-table">
                         <table class="table">
                             <thead>
-                                <tr>
-                                    <th class="product-thumbnail">Image</th>
-                                    <th class="product-name">Product</th>
-                                    <th class="product-price">Price</th>
-                                    <th class="product-quantity">Quantity</th>
-                                    <th class="product-total">Total</th>
-                                    <th class="product-remove">Remove</th>
+                                <tr style="border-bottom: 2px solid #ddd;">
+                                    <th class="product-thumbnail" style="padding-top: 2px; padding-bottom: 5px; vertical-align: bottom;">Image</th>
+                                    <th class="product-name" style="padding-top: 2px; padding-bottom: 5px; vertical-align: bottom;">Product</th>
+                                    <th class="product-price" style="padding-top: 2px; padding-bottom: 5px; vertical-align: bottom;">Price</th>
+                                    <th class="product-quantity" style="padding-top: 2px; padding-bottom: 5px; vertical-align: bottom;">Quantity</th>
+                                    <th class="product-total" style="padding-top: 2px; padding-bottom: 5px; vertical-align: bottom;">Total</th>
+                                    <th class="product-remove" style="padding-top: 2px; padding-bottom: 5px; vertical-align: bottom;">Remove</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -66,23 +128,26 @@
                                         <td class="product-name">
                                             <h2 class="h5 text-black">@item.ProductName</h2>
                                         </td>
-                                        <td>@item.ProductPrice.ToString("F2") EGP</td>
+                                        <td class="price-cell">@item.ProductPrice.ToString("F2") EGP</td>
                                         <td>
                                             <div class="input-group mb-3 d-flex align-items-center quantity-container" style="max-width: 120px;">
                                                 <div class="input-group-prepend">
-                                                    <button class="btn btn-outline-black decrease" type="button" data-item-id="@item.Id">&minus;</button>
+                                                    <button class="btn btn-outline-black" type="button" onclick="updateQuantity(@item.Id, (parseInt(this.closest('tr').querySelector('.quantity-amount').value) || @item.Quantity) - 1)">&minus;</button>
                                                 </div>
                                                 <input type="text" class="form-control text-center quantity-amount" value="@item.Quantity" 
                                                        placeholder="" aria-label="Example text with button addon" 
-                                                       aria-describedby="button-addon1" readonly>
+                                                       aria-describedby="button-addon1" readonly data-max-stock="@item.ProductStock">
                                                 <div class="input-group-append">
-                                                    <button class="btn btn-outline-black increase" type="button" data-item-id="@item.Id">&plus;</button>
+                                                    <button class="btn btn-outline-black" type="button" 
+                                                            onclick="checkStockAndUpdate(@item.Id, (parseInt(this.closest('tr').querySelector('.quantity-amount').value) || @item.Quantity) + 1, @item.ProductStock)">&plus;</button>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="item-total">@((item.ProductPrice * item.Quantity).ToString("F2")) EGP</td>
                                         <td>
-                                            <button type="button" class="btn btn-black btn-sm remove-item" data-item-id="@item.Id">X</button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" title="Remove item" onclick="removeFromCart(@item.Id)">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 }
@@ -96,10 +161,10 @@
                 <div class="col-md-6">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-black btn-sm btn-block">Continue Shopping</a>
+                            <button class="btn btn-black btn-sm btn-block" onclick="updateCart()">Update Cart</button>
                         </div>
                         <div class="col-md-6">
-                            <button class="btn btn-black btn-sm btn-block" onclick="updateCart()">Update Cart</button>
+                            <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-black btn-sm btn-block">Continue Shopping</a>
                         </div>
                     </div>
                     
@@ -108,7 +173,6 @@
                         <div class="col-md-12">
                             <div class="coupon-section p-4" style="background-color: #f8f9fa; border-radius: 8px;">
                                 <h4 class="mb-3 text-dark fw-bold">Coupon</h4>
-                                <p class="text-muted mb-4">Enter your coupon code if you have one.</p>
                                 
                                 <div class="d-flex gap-3">
                                     <input type="text" class="form-control" id="coupon-code" 
@@ -173,17 +237,15 @@
         else
         {
             <div class="text-center py-5">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="mb-4">
-                            <h3>Your Cart is Empty</h3>
-                            <p class="lead">Add some products to your cart to get started!</p>
-                        </div>
-                        <div>
-                            <a href="@Url.Action("Shop", "Furni")" class="btn btn-outline-black btn-sm">Start Shopping</a>
-                        </div>
-                    </div>
+                <div class="mb-4">
+                    <i class="fas fa-shopping-cart fa-5x text-muted"></i>
                 </div>
+                <h3 class="text-muted mb-3">Your cart is empty</h3>
+                <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet.</p>
+                <a href="@Url.Action("Shop", "Furni")" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-bag me-2"></i>
+                    Start Shopping
+                </a>
             </div>
         }
     </div>
@@ -191,283 +253,87 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Initialize event handlers with delegation
-    initializeQuantityHandlers();
-});
-
-function updateQuantity(itemId, quantity, quantityInput) {
-    $.ajax({
-        url: '@Url.Action("UpdateQuantity", "Cart")',
-        type: 'POST',
-        data: {
-            id: itemId,
-            quantity: quantity
-        },
-        success: function(response) {
-            if (response.success) {
-                quantityInput.val(quantity);
-                updateCartTotals();
-                updateCartCount();
-            } else {
-                alert('Error updating quantity: ' + response.message);
-                // Revert to original quantity on error
-                location.reload();
-            }
-        },
-        error: function() {
-            alert('Error updating quantity');
-            // Revert to original quantity on error
-            location.reload();
-        }
-    });
-}
-
-function removeItem(itemId) {
-    $.ajax({
-        url: '@Url.Action("Remove", "Cart")',
-        type: 'POST',
-        data: {
-            id: itemId
-        },
-        success: function(response) {
-            if (response.success) {
-                location.reload();
-            } else {
-                alert('Error removing item: ' + response.message);
-            }
-        },
-        error: function() {
-            alert('Error removing item');
-        }
-    });
-}
-
-function updateCartTotals() {
-    var subtotal = 0;
-    
-    $('tbody tr').each(function() {
-        var quantity = parseInt($(this).find('.quantity-amount').val());
-        var priceText = $(this).find('td:nth-child(3)').text().replace('EGP', '').trim();
-        var price = parseFloat(priceText);
-        var itemTotal = quantity * price;
-        
-        $(this).find('.item-total').text(itemTotal.toFixed(2) + ' EGP');
-        subtotal += itemTotal;
-    });
-    
-    $('#cart-subtotal').text(subtotal.toFixed(2) + ' EGP');
-    
-    // Apply discount if any
-    var discountAmount = parseFloat($('#discount-amount').text().replace('-', '').replace('EGP', '').trim()) || 0;
-    var total = subtotal - discountAmount;
-    
-    $('#cart-total').text(total.toFixed(2) + ' EGP');
-}
-
-function updateCart() {
-    // Simple reload to ensure data consistency
-    location.reload();
-}
-
-// Simple and reliable quantity handlers
-function initializeQuantityHandlers() {
-    // Clear any existing handlers
-    $('.increase, .decrease, .remove-item').off('click');
-    
-    // Increase quantity handler
-    $('.increase').on('click', function() {
-        var button = $(this);
-        var itemId = button.data('item-id');
-        var quantityInput = button.closest('.quantity-container').find('.quantity-amount');
-        var currentQuantity = parseInt(quantityInput.val());
-        
-        // Prevent multiple clicks
-        if (button.prop('disabled')) return;
-        button.prop('disabled', true);
-        
-        // Calculate new quantity
-        var newQuantity = currentQuantity + 1;
-        
-        // Update server
-        $.post('@Url.Action("UpdateQuantity", "Cart")', {
-            id: itemId,
-            quantity: newQuantity
-        })
-        .done(function(response) {
-            if (response.success) {
-                quantityInput.val(newQuantity);
-                updateCartTotals();
-                updateCartCount();
-            } else {
-                alert('خطأ في تحديث الكمية');
-            }
-        })
-        .fail(function() {
-            alert('خطأ في الاتصال');
-        })
-        .always(function() {
-            button.prop('disabled', false);
-        });
-    });
-    
-    // Decrease quantity handler
-    $('.decrease').on('click', function() {
-        var button = $(this);
-        var itemId = button.data('item-id');
-        var quantityInput = button.closest('.quantity-container').find('.quantity-amount');
-        var currentQuantity = parseInt(quantityInput.val());
-        
-        // Don't allow quantity below 1
-        if (currentQuantity <= 1) return;
-        
-        // Prevent multiple clicks
-        if (button.prop('disabled')) return;
-        button.prop('disabled', true);
-        
-        // Calculate new quantity
-        var newQuantity = currentQuantity - 1;
-        
-        // Update server
-        $.post('@Url.Action("UpdateQuantity", "Cart")', {
-            id: itemId,
-            quantity: newQuantity
-        })
-        .done(function(response) {
-            if (response.success) {
-                quantityInput.val(newQuantity);
-                updateCartTotals();
-                updateCartCount();
-            } else {
-                alert('خطأ في تحديث الكمية');
-            }
-        })
-        .fail(function() {
-            alert('خطأ في الاتصال');
-        })
-        .always(function() {
-            button.prop('disabled', false);
-        });
-    });
-    
-    // Remove item handler
-    $('.remove-item').on('click', function() {
-        if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-            var itemId = $(this).data('item-id');
-            removeItem(itemId);
-        }
-    });
-}
-
-function showSuccessMessage(message) {
-    // Create and show a temporary success message
-    var alertDiv = $('<div class="alert alert-success alert-dismissible fade show" role="alert">' +
-        message +
-        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
-        '</div>');
-    
-    $('.container').prepend(alertDiv);
-    
-    // Auto-hide after 3 seconds
-    setTimeout(function() {
-        alertDiv.fadeOut(function() {
-            $(this).remove();
-        });
-    }, 3000);
-}
-
-function updateCartCount() {
-    $.get('@Url.Action("GetCartCount", "Cart")')
-        .done(function(response) {
-            $('#cart-count').text(response.count);
-            if (response.count > 0) {
-                $('#cart-count').show();
-            } else {
-                $('#cart-count').hide();
-            }
-        });
-}
-
-
-// Function to apply coupon
-function applyCoupon() {
-    var couponCode = $('#coupon-code').val().trim();
-    if (!couponCode) {
-        showCouponMessage('Please enter a coupon code', 'error');
+// Simple, reliable cart actions (original working pattern)
+function updateQuantity(cartItemId, newQuantity) {
+    if (newQuantity < 1) {
+        removeFromCart(cartItemId);
         return;
     }
-    
-    // Show loading state
-    var button = $('button[onclick="applyCoupon()"]');
-    var originalText = button.html();
-    button.html('Applying...').prop('disabled', true);
-    
-    // Simulate server delay
-    setTimeout(function() {
-        var discount = 0;
-        var isValidCoupon = false;
-        var couponName = '';
-        
-        // Example coupon codes
-        switch(couponCode.toUpperCase()) {
-            case 'SAVE10':
-                discount = 0.10; // 10% discount
-                isValidCoupon = true;
-                couponName = 'خصم 10% - 10% OFF';
-                break;
-            case 'SAVE20':
-                discount = 0.20; // 20% discount
-                isValidCoupon = true;
-                couponName = 'خصم 20% - 20% OFF';
-                break;
-            case 'FURNI50':
-                discount = 50; // 50 EGP fixed discount
-                isValidCoupon = true;
-                couponName = 'خصم 50 جنيه - 50 EGP OFF';
-                break;
-            default:
-                showCouponMessage('Invalid coupon code', 'error');
-                button.html(originalText).prop('disabled', false);
-                return;
-        }
-        
-        if (isValidCoupon) {
-            var subtotal = parseFloat($('#cart-subtotal').text().replace('EGP', '').trim());
-            var discountAmount = 0;
-            
-            if (discount < 1) {
-                // Percentage discount
-                discountAmount = subtotal * discount;
+    $.ajax({
+        url: '/Cart/UpdateQuantity',
+        type: 'POST',
+        data: { id: cartItemId, quantity: newQuantity },
+        success: function (response) {
+            if (response.success) {
+                if (typeof updateCartCount === 'function') { try { updateCartCount(); } catch (_) {} }
+                location.reload();
             } else {
-                // Fixed amount discount
-                discountAmount = Math.min(discount, subtotal);
+                alert(response.message || 'Error updating cart');
+                // If there's a max quantity, revert the input to that value
+                if (response.maxQuantity) {
+                    var quantityInput = $('tr').find('[onclick*="' + cartItemId + '"]').closest('tr').find('.quantity-amount');
+                    quantityInput.val(response.maxQuantity);
+                }
             }
-            
-            $('#discount-amount').text('-' + discountAmount.toFixed(2) + ' EGP');
-            $('#discount-row').show();
-            
-            var total = subtotal - discountAmount;
-            $('#cart-total').text(total.toFixed(2) + ' EGP');
-            
-            showCouponMessage('Coupon applied successfully! (' + couponName + ')', 'success');
-            $('#coupon-code').prop('disabled', true);
-            button.html('Applied').prop('disabled', true).css('background-color', '#28a745');
-        }
-    }, 1000);
+        },
+        error: function () { alert('Error updating cart'); }
+    });
 }
 
-function showCouponMessage(message, type) {
-    var messageDiv = $('#coupon-message');
-    var alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-    var icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
-    
-    messageDiv.html('<div class="alert ' + alertClass + ' py-2 mb-0"><i class="' + icon + ' me-2"></i>' + message + '</div>');
-    messageDiv.show();
-    
-    if (type === 'error') {
-        setTimeout(function() {
-            messageDiv.fadeOut();
-        }, 5000);
+function removeFromCart(cartItemId) {
+    if (!confirm('Are you sure you want to remove this item from your cart?')) return;
+    $.ajax({
+        url: '/Cart/Remove',
+        type: 'POST',
+        data: { id: cartItemId },
+        success: function (response) {
+            if (response.success) {
+                if (typeof updateCartCount === 'function') { try { updateCartCount(); } catch (_) {} }
+                location.reload();
+            } else {
+                alert('Error removing item: ' + (response.message || ''));
+            }
+        },
+        error: function () { alert('Error removing item from cart'); }
+    });
+}
+
+function updateCart() { location.reload(); }
+
+function checkStockAndUpdate(cartItemId, newQuantity, maxStock) {
+    if (newQuantity > maxStock) {
+        alert(`Cannot add more items. Only ${maxStock} items available in stock.`);
+        return;
     }
+    updateQuantity(cartItemId, newQuantity);
+}
+
+function applyCoupon() {
+    var couponCode = $('#coupon-code').val().trim();
+    if (!couponCode) { alert('Please enter a coupon code'); return; }
+    $.ajax({
+        url: '@Url.Action("ApplyCoupon", "Cart")',
+        type: 'POST',
+        data: { couponCode: couponCode },
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        success: function (response) {
+            if (response.success) {
+                $('#discount-amount').text('-' + parseFloat(response.discountAmount).toFixed(2) + ' EGP');
+                $('#discount-row').show();
+                $('#cart-total').text(parseFloat(response.newTotal).toFixed(2) + ' EGP');
+            } else {
+                // Hide discount row for invalid coupons
+                $('#discount-row').hide();
+                $('#cart-total').text($('#cart-subtotal').text());
+                alert(response.message || 'Invalid coupon code');
+            }
+        },
+        error: function () { 
+            // Hide discount row on error
+            $('#discount-row').hide();
+            $('#cart-total').text($('#cart-subtotal').text());
+            alert('An error occurred while applying the coupon'); 
+        }
+    });
 }
 </script>

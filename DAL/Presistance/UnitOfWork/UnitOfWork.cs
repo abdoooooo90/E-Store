@@ -3,7 +3,6 @@ using DAL.Presistance.Repositories.CartItems;
 using DAL.Presistance.Repositories.Categories;
 using DAL.Presistance.Repositories.Orders;
 using DAL.Presistance.Repositories.Payments;
-using DAL.Presistance.Repositories.ProductImages;
 using DAL.Presistance.Repositories.Products;
 using DAL.Presistance.Repositories.Wishlists;
 using System;
@@ -22,7 +21,6 @@ namespace DAL.Presistance.UnitOfWork
         public ICategoryRepository Categories { get; }
         public IOrderRepository Orders { get; }
         public ICartItemRepository CartItems { get; }
-        public IProductImagesRepository ProductImages { get; }
         public IPaymentRepository Payments { get; }
         public IWishlistRepository Wishlists { get; }
 
@@ -32,7 +30,6 @@ namespace DAL.Presistance.UnitOfWork
             ICategoryRepository categoryRepo,
             IOrderRepository orderRepo,
             ICartItemRepository cartItemRepo,
-            IProductImagesRepository productImageRepo,
             IPaymentRepository payments,
             IWishlistRepository wishlists)
         {
@@ -41,7 +38,6 @@ namespace DAL.Presistance.UnitOfWork
             Categories = categoryRepo;
             Orders = orderRepo;
             CartItems = cartItemRepo;
-            ProductImages = productImageRepo;
             Payments = payments;
             Wishlists = wishlists;
         }

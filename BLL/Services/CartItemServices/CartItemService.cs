@@ -52,23 +52,34 @@ namespace BLL.Services.CartItemServices
         {
             try
             {
-                // Get product to check stock
+                // Get product to check stock and availability
                 var product = await _unitOfWork.Products.GetByIdAsync(dto.ProductId);
-                if (product == null || product.Stock < dto.Quantity)
+                if (product == null)
                 {
-                    return false; // Not enough stock
+                    throw new Exception($"Product with ID {dto.ProductId} not found");
+                }
+
+                if (!product.IsAvailable)
+                {
+                    throw new Exception($"Product {product.Name} is not available");
+                }
+
+                if (product.Stock < dto.Quantity)
+                {
+                    throw new Exception($"Not enough stock for product {product.Name}. Available: {product.Stock}, Requested: {dto.Quantity}");
                 }
 
                 // Check if item already exists in cart
                 var existingCartItem = await _unitOfWork.CartItems
-                .GetByUserIdAndProductIdAsync(dto.UserId, dto.ProductId);
+                    .GetByUserIdAndProductIdAsync(dto.UserId, dto.ProductId);
 
                 if (existingCartItem != null)
                 {
                     // Check if total quantity would exceed stock
-                    if (product.Stock < existingCartItem.Quantity + dto.Quantity)
+                    var totalQuantity = existingCartItem.Quantity + dto.Quantity;
+                    if (product.Stock < totalQuantity)
                     {
-                        return false; // Not enough stock for additional quantity
+                        throw new Exception($"Not enough stock for product {product.Name}. Available: {product.Stock}, Total requested: {totalQuantity}");
                     }
                     
                     // Update quantity
@@ -77,17 +88,27 @@ namespace BLL.Services.CartItemServices
                 }
                 else
                 {
-                    // Add new item
-                    var newItem = _mapper.Map<CartItem>(dto);
+                    // Create new cart item
+                    var newItem = new CartItem
+                    {
+                        UserId = dto.UserId,
+                        ProductId = dto.ProductId,
+                        Quantity = dto.Quantity,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
                     _unitOfWork.CartItems.Add(newItem);
                 }
 
-                // Don't reduce stock when adding to cart - only when order is placed
-                return await _unitOfWork.CompleteAsync() > 0;
+                // Save changes
+                var result = await _unitOfWork.CompleteAsync();
+                return result > 0;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                // Log the actual exception for debugging
+                Console.WriteLine($"AddToCartAsync Error: {ex.Message}");
+                throw; // Re-throw to let controller handle it
             }
         }
 
