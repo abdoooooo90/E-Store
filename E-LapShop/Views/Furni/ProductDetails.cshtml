@@ -83,28 +83,35 @@
 
                     <div class="product-info mb-4">
                         <div class="row">
-                            <div class="col-6">
-                                <strong>Category:</strong> @Model.CategoryName
+                            <div class="col-12 mb-3">
+                                <strong>Category:</strong> 
+                                <span class="badge" style="background: linear-gradient(135deg, #3b5d50, #2d4a3a); color: white; font-size: 1rem; padding: 8px 16px; border-radius: 25px; box-shadow: 0 2px 8px rgba(59, 93, 80, 0.3);">
+                                    <i class="fas fa-tag me-2"></i>@Model.CategoryName
+                                </span>
                             </div>
-                            <div class="col-6">
+                            <div class="col-12">
                                 <strong>Availability:</strong> 
                                 @if (Model.Stock > 0)
                                 {
                                     @if (Model.Stock < 10)
                                     {
-                                        <span class="text-warning">
+                                        <span class="text-warning fw-bold">
                                             <i class="fas fa-exclamation-triangle me-1"></i>
                                             Only @Model.Stock left in stock!
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="text-success">In Stock</span>
+                                        <span class="text-success fw-bold">
+                                            <i class="fas fa-check-circle me-1"></i>In Stock
+                                        </span>
                                     }
                                 }
                                 else
                                 {
-                                    <span class="text-danger">Out of Stock</span>
+                                    <span class="text-danger fw-bold">
+                                        <i class="fas fa-times-circle me-1"></i>Currently Unavailable
+                                    </span>
                                 }
                             </div>
                         </div>
@@ -459,29 +466,101 @@
 }
 </style>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+// Simple toast notification function
+function showToast(message, type = 'info') {
+    // Remove any existing toasts
+    const existingToasts = document.querySelectorAll('.custom-toast');
+    existingToasts.forEach(toast => toast.remove());
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `custom-toast alert ${type === 'success' ? 'alert-success' : 'alert-danger'} alert-dismissible fade show`;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 5000);
+}
+
 function changeMainImage(src) {
-    document.getElementById('mainProductImage').src = src;
+    const mainImg = document.getElementById('mainProductImage');
+    if (mainImg) {
+        mainImg.src = src;
+    }
     
     // Update active thumbnail
     document.querySelectorAll('.thumbnail-img').forEach(img => {
         img.classList.remove('active');
     });
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
 }
 
 function increaseQuantity() {
     const input = document.getElementById('quantity');
+    if (!input) return;
+    
     const max = parseInt(input.getAttribute('max')) || 99;
     const val = parseInt(input.value) || 1;
-    if (val < max) input.value = val + 1;
+    
+    if (val < max) {
+        input.value = val + 1;
+    } else {
+        showToast('لا يمكن إضافة المزيد. المخزون المتاح: ' + max, 'error');
+    }
 }
 
 function decreaseQuantity() {
     const input = document.getElementById('quantity');
+    if (!input) return;
+    
     const val = parseInt(input.value) || 1;
-    if (val > 1) input.value = val - 1;
+    if (val > 1) {
+        input.value = val - 1;
+    }
+}
+
+function checkStockAvailability(productId, requestedQuantity, callback) {
+    if (typeof $ !== 'undefined' && $.ajax) {
+        $.ajax({
+            url: '/Cart/CheckStock',
+            type: 'GET',
+            data: { productId: productId, quantity: requestedQuantity },
+            success: function(response) {
+                if (callback && typeof callback === 'function') {
+                    callback(response.available, response.actualStock);
+                }
+            },
+            error: function() {
+                if (callback && typeof callback === 'function') {
+                    callback(false, 0);
+                }
+            }
+        });
+    } else {
+        console.error('jQuery not loaded');
+        if (callback && typeof callback === 'function') {
+            callback(false, 0);
+        }
+    }
 }
 
 function contactSeller() {
@@ -489,239 +568,268 @@ function contactSeller() {
     window.location.href = '@Url.Action("Contact", "Furni")';
 }
 
-// Wishlist and Cart functionality (clean handlers)
-$(document).ready(function() {
-    // Initialize counts on load
-    updateWishlistCount();
-    updateCartCount();
+// Initialize when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize counts on load if functions exist
+    if (typeof updateWishlistCount === 'function') updateWishlistCount();
+    if (typeof updateCartCount === 'function') updateCartCount();
 
-    const getToken = () => $('input[name="__RequestVerificationToken"]').val();
+    const getToken = () => {
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        return tokenInput ? tokenInput.value : '';
+    };
 
-    // Wishlist toggle
-    $('.wishlist-toggle').off('click').on('click', function(e) {
-        e.preventDefault();
-        const btn = $(this);
-        const pid = btn.data('product-id');
-        const isActive = btn.find('i').hasClass('text-danger');
-        const url = isActive ? '@Url.Action("RemoveFromWishlist", "Wishlist")' : '@Url.Action("AddToWishlist", "Wishlist")';
-        $.ajax({
-            url: url,
-            type: 'POST',
-            data: { productId: pid, __RequestVerificationToken: getToken() }
-        }).done(function(resp){
-            if (resp.success) {
-                if (isActive) {
-                    btn.find('i').removeClass('text-danger');
-                    btn.removeClass('btn-danger').addClass('btn-outline-danger');
-                    btn.contents().filter(function(){return this.nodeType===3;}).remove();
-                    btn.append(' إضافة إلى المفضلة');
-                    showToast('تم إزالة المنتج من المفضلة', 'success');
+    // Add to cart functionality
+    const addToCartBtn = document.querySelector('.add-to-cart-btn');
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const btn = this;
+            const pid = parseInt(btn.getAttribute('data-product-id'));
+            const pname = btn.getAttribute('data-product-name');
+            const qtyInput = document.getElementById('quantity');
+            const qty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+            const max = parseInt(btn.getAttribute('data-available-stock')) || 99;
+            
+            if (!pid || qty < 1) {
+                showToast('بيانات المنتج غير صالحة', 'error');
+                return;
+            }
+            if (qty > max) {
+                showToast('الكمية المطلوبة تتجاوز المخزون المتاح', 'error');
+                return;
+            }
+
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الإضافة...';
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('ProductId', pid);
+            formData.append('Quantity', qty);
+            formData.append('__RequestVerificationToken', getToken());
+
+            fetch('/Cart/AddToCart', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.success) {
+                    showToast(`تمت إضافة '${pname}' إلى السلة بنجاح`, 'success');
+                    if (typeof updateCartCount === 'function') {
+                        updateCartCount();
+                    }
+                    // Remove automatic redirect - just show success message
                 } else {
-                    btn.find('i').addClass('text-danger');
-                    btn.removeClass('btn-outline-danger').addClass('btn-danger');
-                    btn.contents().filter(function(){return this.nodeType===3;}).remove();
-                    btn.append(' تمّت الإضافة إلى المفضلة');
-                    showToast('تم إضافة المنتج إلى المفضلة', 'success');
+                    const errorMsg = (data && data.message) ? data.message : 'تعذر إضافة المنتج للسلة';
+                    if (errorMsg.includes('تسجيل الدخول') || errorMsg.toLowerCase().includes('login')) {
+                        window.location.href = '/Account/Auth';
+                        return;
+                    }
+                    showToast(errorMsg, 'error');
                 }
-                updateWishlistCount();
-            } else {
-                showToast(resp.message || 'تعذر تنفيذ العملية على المفضلة', 'error');
-            }
-        }).fail(function(){
-            showToast('خطأ في الاتصال', 'error');
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+                showToast('حدث خطأ في الاتصال', 'error');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            });
         });
-    });
+    }
 
-    // Add to cart
-    $('.add-to-cart-btn').off('click').on('click', function(e){
-        e.preventDefault();
-        const btn = $(this);
-        const pid = parseInt(btn.data('product-id'));
-        const pname = btn.data('product-name');
-        const qty = parseInt($('#quantity').val()) || 1;
-        const max = parseInt(btn.data('available-stock')) || 99;
-        if (!pid || qty < 1) { showToast('بيانات المنتج غير صالحة', 'error'); return; }
-        if (qty > max) { showToast('الكمية المطلوبة تتجاوز المخزون المتاح', 'error'); return; }
+    // Wishlist toggle functionality
+    const wishlistBtn = document.querySelector('.wishlist-toggle');
+    if (wishlistBtn) {
+        wishlistBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const btn = this;
+            const pid = btn.getAttribute('data-product-id');
+            const heartIcon = btn.querySelector('i');
+            const isActive = heartIcon && heartIcon.classList.contains('text-danger');
+            const url = isActive ? '/Wishlist/RemoveFromWishlist' : '/Wishlist/AddToWishlist';
+            
+            const formData = new FormData();
+            formData.append('productId', pid);
+            formData.append('__RequestVerificationToken', getToken());
 
-        const original = btn.html();
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>جاري الإضافة...');
-
-        $.ajax({
-            url: '/Cart/AddToCart',
-            type: 'POST',
-            data: { ProductId: pid, Quantity: qty, __RequestVerificationToken: getToken() }
-        }).done(function(resp){
-            if (resp.success) {
-                showToast(`تمت إضافة '${pname}' إلى السلة بنجاح`, 'success');
-                updateCartCount();
-                setTimeout(function(){
-                    window.location.href = '@Url.Action("Index", "Cart")';
-                }, 800);
-            } else {
-                // إذا كانت الرسالة تطلب تسجيل الدخول، نوجّه لصفحة الدخول
-                if (resp.message && (resp.message.includes('تسجيل الدخول') || resp.message.toLowerCase().includes('login'))) {
-                    window.location.href = '@Url.Action("Auth", "Account")';
-                    return;
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
-                showToast(resp.message || 'تعذر إضافة المنتج للسلة', 'error');
-            }
-        }).fail(function(jqXHR, textStatus, errorThrown){
-            console.error('AJAX Error:', textStatus, errorThrown);
-            showToast('حدث خطأ في الاتصال', 'error');
-        }).always(function(){
-            btn.prop('disabled', false).html(original);
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (isActive) {
+                        heartIcon.classList.remove('text-danger');
+                        btn.classList.remove('btn-danger');
+                        btn.classList.add('btn-outline-danger');
+                        btn.innerHTML = '<i class="fas fa-heart me-2"></i>إضافة إلى المفضلة';
+                        showToast('تم إزالة المنتج من المفضلة', 'success');
+                    } else {
+                        heartIcon.classList.add('text-danger');
+                        btn.classList.remove('btn-outline-danger');
+                        btn.classList.add('btn-danger');
+                        btn.innerHTML = '<i class="fas fa-heart me-2 text-danger"></i>تمّت الإضافة إلى المفضلة';
+                        showToast('تم إضافة المنتج إلى المفضلة', 'success');
+                    }
+                    if (typeof updateWishlistCount === 'function') {
+                        updateWishlistCount();
+                    }
+                } else {
+                    showToast(data.message || 'تعذر تنفيذ العملية على المفضلة', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Wishlist Error:', error);
+                showToast('خطأ في الاتصال', 'error');
+            });
         });
-    });
+    }
     
-    // Update hidden quantity when visible quantity changes
-    $('#quantity').on('change', function() {
-        const hiddenQuantity = document.getElementById('hiddenQuantity');
-        if (hiddenQuantity) {
-            hiddenQuantity.value = $(this).val();
-        }
-    });
+    // Update quantity input change handler
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) {
+        quantityInput.addEventListener('change', function() {
+            const hiddenQuantity = document.getElementById('hiddenQuantity');
+            if (hiddenQuantity) {
+                hiddenQuantity.value = this.value;
+            }
+        });
+    }
 
     // Related products wishlist functionality
-    $('.wishlist-btn-related').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const button = $(this);
-        const productId = button.data('product-id');
-        const heartIcon = button.find('i');
-        const isInWishlist = heartIcon.hasClass('text-danger');
-        const token = $('input[name="__RequestVerificationToken"]').val();
-        
-        if (isInWishlist) {
-            // Remove from wishlist
-            $.ajax({
-                url: '@Url.Action("RemoveFromWishlist", "Wishlist")',
-                type: 'POST',
-                data: { 
-                    productId: productId,
-                    __RequestVerificationToken: token
-                },
-                success: function(response) {
-                    if (response.success) {
-                        heartIcon.removeClass('text-danger').addClass('text-muted');
-                        showToast('تم إزالة المنتج من قائمة الأمنيات', 'success');
-                        updateWishlistCount();
-                    } else {
-                        showToast('Error removing product from wishlist', 'error');
-                    }
-                })
-                .fail(function() {
-                    showToast('Connection error', 'error');
-                });
-        } else {
-            // Add to wishlist
-            $.ajax({
-                url: '@Url.Action("AddToWishlist", "Wishlist")',
-                type: 'POST',
-                data: { 
-                    productId: productId,
-                    __RequestVerificationToken: token
-                },
-                success: function(response) {
-                    if (response.success) {
-                        heartIcon.removeClass('text-muted').addClass('text-danger');
-                        showToast('تم إضافة المنتج إلى قائمة الأمنيات', 'success');
-                        updateWishlistCount();
-                    } else {
-                        showToast('خطأ في إضافة المنتج إلى قائمة الأمنيات', 'error');
-                    }
-                },
-                error: function() {
-                    showToast('خطأ في الاتصال', 'error');
+    const relatedWishlistBtns = document.querySelectorAll('.wishlist-btn-related');
+    relatedWishlistBtns.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = this.getAttribute('data-product-id');
+            const heartIcon = this.querySelector('i');
+            const isInWishlist = heartIcon && heartIcon.classList.contains('text-danger');
+            const url = isInWishlist ? '/Wishlist/RemoveFromWishlist' : '/Wishlist/AddToWishlist';
+            
+            const formData = new FormData();
+            formData.append('productId', productId);
+            formData.append('__RequestVerificationToken', getToken());
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (isInWishlist) {
+                        heartIcon.classList.remove('text-danger');
+                        heartIcon.classList.add('text-muted');
+                        showToast('تم إزالة المنتج من قائمة الأمنيات', 'success');
+                    } else {
+                        heartIcon.classList.remove('text-muted');
+                        heartIcon.classList.add('text-danger');
+                        showToast('تم إضافة المنتج إلى قائمة الأمنيات', 'success');
+                    }
+                    if (typeof updateWishlistCount === 'function') {
+                        updateWishlistCount();
+                    }
+                } else {
+                    showToast(data.message || 'خطأ في تنفيذ العملية', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Related wishlist error:', error);
+                showToast('خطأ في الاتصال', 'error');
+            });
+        });
+        
+        // Load initial wishlist status
+        const productId = button.getAttribute('data-product-id');
+        const heartIcon = button.querySelector('i');
+        
+        if (productId && heartIcon) {
+            fetch(`/Wishlist/IsInWishlist?productId=${productId}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.isInWishlist) {
+                    heartIcon.classList.remove('text-muted');
+                    heartIcon.classList.add('text-danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading wishlist status:', error);
             });
         }
-    });
-
-    // Load wishlist status for related products
-    $('.wishlist-btn-related').each(function() {
-        const productId = $(this).data('product-id');
-        const heartIcon = $(this).find('i');
-        
-        $.get('@Url.Action("IsInWishlist", "Wishlist")', { productId: productId })
-            .done(function(response) {
-                if (response.isInWishlist) {
-                    heartIcon.removeClass('text-muted').addClass('text-danger');
-                }
-            });
     });
 });
 
-// Function to load wishlist status for the product
-function loadWishlistStatus() {
-    const productId = $('.wishlist-btn').data('product-id');
-    if (productId) {
-        $.get('@Url.Action("IsInWishlist", "Wishlist")', { productId: productId })
-            .done(function(response) {
-                const heartIcon = $('.wishlist-btn').find('i');
-                const button = $('.wishlist-btn');
-                
-                if (response.isInWishlist) {
-                    heartIcon.addClass('text-danger').css('color', '#dc3545');
-                    button.html('<i class="fas fa-heart me-2 text-danger"></i>Remove from Wishlist');
-                } else {
-                    heartIcon.removeClass('text-danger').css('color', '#ccc');
-                    button.html('<i class="fas fa-heart me-2" style="color: #ccc;"></i>Add to Wishlist');
-                }
-            });
-    }
-}
-
 // Function to update wishlist count in navigation
 function updateWishlistCount() {
-    $.get('@Url.Action("GetWishlistCount", "Wishlist")')
-        .done(function(response) {
-            $('#wishlist-count').text(response.count);
-            if (response.count > 0) {
-                $('#wishlist-count').show();
+    fetch('/Wishlist/GetWishlistCount', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const countElement = document.getElementById('wishlist-count');
+        if (countElement) {
+            countElement.textContent = data.count;
+            if (data.count > 0) {
+                countElement.style.display = 'inline';
             } else {
-                $('#wishlist-count').hide();
+                countElement.style.display = 'none';
             }
-        });
+        }
+    })
+    .catch(error => {
+        console.error('Error updating wishlist count:', error);
+    });
 }
 
 // Function to update cart count in navigation
 function updateCartCount() {
-    $.get('@Url.Action("GetCartCount", "Cart")')
-        .done(function(response) {
-            $('#cart-count').text(response.count);
-            if (response.count > 0) {
-                $('#cart-count').show();
+    fetch('/Cart/GetCartCount', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const countElement = document.getElementById('cart-count');
+        if (countElement) {
+            countElement.textContent = data.count;
+            if (data.count > 0) {
+                countElement.style.display = 'inline';
             } else {
-                $('#cart-count').hide();
+                countElement.style.display = 'none';
             }
-        });
-}
-
-// Function to show toast notifications
-function showToast(message, type) {
-    const toast = $('<div class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">')
-        .addClass(type === 'success' ? 'bg-success' : 'bg-danger')
-        .css({
-            'position': 'fixed',
-            'top': '20px',
-            'right': '20px',
-            'z-index': '9999'
-        })
-        .html(`
-            <div class="d-flex">
-                <div class="toast-body">${message}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        `);
-    
-    $('body').append(toast);
-    
-    const bsToast = new bootstrap.Toast(toast[0]);
-    bsToast.show();
-    
-    toast.on('hidden.bs.toast', function() {
-        $(this).remove();
+        }
+    })
+    .catch(error => {
+        console.error('Error updating cart count:', error);
     });
 }
 </script>

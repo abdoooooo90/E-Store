@@ -21,6 +21,14 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         }
+                        
+                        @if (TempData["Error"] != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-1"></i>@TempData["Error"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
 
                         <form asp-action="Profile" method="post">
                             @Html.AntiForgeryToken()
@@ -33,7 +41,8 @@
 
                             <div class="mb-3">
                                 <label class="form-label">البريد الإلكتروني</label>
-                                <input asp-for="Email" class="form-control" disabled />
+                                <input asp-for="Email" class="form-control" readonly style="background-color: #f8f9fa; cursor: not-allowed;" />
+                                <small class="form-text text-muted">لا يمكن تغيير البريد الإلكتروني المسجل</small>
                             </div>
 
                             <div class="mb-3">
@@ -62,4 +71,31 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Show success toast if TempData exists
+        @if (TempData["Success"] != null)
+        {
+            <text>
+            // Ensure the alert is visible and auto-hide after 5 seconds
+            setTimeout(function() {
+                var successAlert = document.querySelector('.alert-success');
+                if (successAlert) {
+                    successAlert.style.display = 'block';
+                    setTimeout(function() {
+                        successAlert.classList.remove('show');
+                        successAlert.classList.add('fade');
+                    }, 5000);
+                }
+            }, 100);
+            </text>
+        }
+        
+        // Form submission handler to show loading state
+        document.querySelector('form').addEventListener('submit', function(e) {
+            var submitBtn = document.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري الحفظ...';
+            submitBtn.disabled = true;
+        });
+    </script>
 }

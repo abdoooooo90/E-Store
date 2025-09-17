@@ -16,10 +16,10 @@
  #cart-total,
  #discount-amount { font-size: 1.15rem; }
 
- /* Remove all spacing between hero and cart table */
+ /* Complete removal of all spacing between hero and cart table */
  .untree_co-section.before-footer-section { 
      padding-top: 0 !important; 
-     margin-top: 0 !important;
+     margin-top: -20px !important;
  }
  .untree_co-section.before-footer-section .container { 
      padding-top: 0 !important; 
@@ -31,6 +31,7 @@
  }
  .site-blocks-table .table { 
      margin-top: 0 !important; 
+     margin-bottom: 0 !important;
  }
  .hero { 
      margin-bottom: 0 !important; 
@@ -52,39 +53,54 @@
  }
  .table thead th { 
      padding-top: 0 !important; 
-     padding-bottom: 0.15rem !important; 
+     padding-bottom: 8px !important; 
      position: relative; 
-     top: -8px; 
+     top: 0; 
+     border-top: none !important;
  }
- 
+ .table thead {
+     border-top: none !important;
+ }
+ .table {
+     border-top: none !important;
+ }
+
  /* Additional spacing removal */
  .row.mb-2.mt-0 {
      margin-top: 0 !important;
      margin-bottom: 0 !important;
  }
+ 
+ /* Force table to stick to hero section */
+ .container .row:first-of-type {
+     margin-top: 0 !important;
+ }
 </style>
 
 <!-- Start Hero Section -->
-<div class="hero">
-    <div class="container">
-        <div class="row justify-content-between">
+<div class="hero" style="padding-bottom: 0 !important; margin-bottom: 0 !important;">
+    <div class="container" style="padding-bottom: 0 !important; margin-bottom: 0 !important;">
+        <div class="row justify-content-between" style="margin-bottom: 0 !important;">
             <div class="col-lg-5">
-                <div class="intro-excerpt">
-                    <h1>Cart</h1>
+                <div class="intro-excerpt" style="margin-bottom: 0 !important;">
+                    <h1 style="margin-bottom: 0 !important;">Cart</h1>
                 </div>
             </div>
-            <div class="col-lg-7">
-                <div class="hero-img-wrap">
-                    <img src="~/furni/images/couch.png" class="img-fluid">
+            @if (Model != null && Model.Any())
+            {
+                <div class="col-lg-7">
+                    <div class="hero-img-wrap">
+                        <img src="~/furni/images/couch.png" class="img-fluid">
+                    </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 </div>
 <!-- End Hero Section -->
 
-<div class="untree_co-section before-footer-section">
-    <div class="container">
+<div class="untree_co-section before-footer-section" style="padding-top: 0 !important; margin-top: -30px !important;">
+    <div class="container" style="padding-top: 0 !important; margin-top: 0 !important;">
         @if (TempData["Success"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -127,6 +143,12 @@
                                         </td>
                                         <td class="product-name">
                                             <h2 class="h5 text-black">@item.ProductName</h2>
+                                            @if (item.ProductStock <= 0)
+                                            {
+                                                <span class="text-danger fw-bold" style="font-size: 0.9rem;">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Currently Unavailable
+                                                </span>
+                                            }
                                         </td>
                                         <td class="price-cell">@item.ProductPrice.ToString("F2") EGP</td>
                                         <td>
@@ -263,7 +285,9 @@ function updateQuantity(cartItemId, newQuantity) {
         url: '/Cart/UpdateQuantity',
         type: 'POST',
         data: { id: cartItemId, quantity: newQuantity },
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
         success: function (response) {
+            console.log('UpdateQuantity Response:', response);
             if (response.success) {
                 if (typeof updateCartCount === 'function') { try { updateCartCount(); } catch (_) {} }
                 location.reload();
@@ -286,6 +310,7 @@ function removeFromCart(cartItemId) {
         url: '/Cart/Remove',
         type: 'POST',
         data: { id: cartItemId },
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
         success: function (response) {
             if (response.success) {
                 if (typeof updateCartCount === 'function') { try { updateCartCount(); } catch (_) {} }

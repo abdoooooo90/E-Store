@@ -1,5 +1,6 @@
 using BLL.Services.CartItemServices;
 using BLL.Services.OrderServices;
+using BLL.Services.ProductServices;
 using BLL.Models.CartItemDtos;
 using BLL.Models.OrderDtos;
 using Microsoft.AspNetCore.Authorization;
@@ -14,13 +15,15 @@ namespace E_LapShop.Controllers
     {
         private readonly ICartItemService _cartItemService;
         private readonly IOrderService _orderService;
+        private readonly IProductService _productService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<CartController> _logger;
 
-        public CartController(ICartItemService cartItemService, IOrderService orderService, UserManager<ApplicationUser> userManager, ILogger<CartController> logger)
+        public CartController(ICartItemService cartItemService, IOrderService orderService, IProductService productService, UserManager<ApplicationUser> userManager, ILogger<CartController> logger)
         {
             _cartItemService = cartItemService;
             _orderService = orderService;
+            _productService = productService;
             _userManager = userManager;
             _logger = logger;
         }
@@ -108,31 +111,6 @@ namespace E_LapShop.Controllers
         {
             try
             {
-                // Get the cart item to check product stock
-                var cartItem = await _cartItemService.GetByIdAsync(id);
-                if (cartItem == null)
-                {
-                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                        return Json(new { success = false, message = "Cart item not found" });
-                    
-                    TempData["Error"] = "Cart item not found.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                // Check if requested quantity exceeds available stock
-                if (quantity > cartItem.ProductStock)
-                {
-                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                        return Json(new { 
-                            success = false, 
-                            message = $"Cannot add more items. Only {cartItem.ProductStock} items available in stock.",
-                            maxQuantity = cartItem.ProductStock
-                        });
-                    
-                    TempData["Error"] = $"Cannot add more items. Only {cartItem.ProductStock} items available in stock.";
-                    return RedirectToAction(nameof(Index));
-                }
-
                 var result = await _cartItemService.UpdateQuantityAsync(id, quantity);
                 
                 if (result)
@@ -152,12 +130,12 @@ namespace E_LapShop.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating cart quantity");
+                _logger.LogError(ex, "Error updating cart quantity: {Message}", ex.Message);
                 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                    return Json(new { success = false, message = "An error occurred while updating cart" });
+                    return Json(new { success = false, message = ex.Message });
                 
-                TempData["Error"] = "An error occurred while updating cart.";
+                TempData["Error"] = ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
@@ -384,6 +362,32 @@ namespace E_LapShop.Controllers
         public IActionResult ThankYou()
         {
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckStock(int productId, int quantity)
+        {
+            try
+            {
+                // Get product directly from database to check current stock
+                var product = await _productService.GetByIdAsync(productId);
+                if (product == null)
+                {
+                    return Json(new { available = false, actualStock = 0, message = "Product not found" });
+                }
+                
+                _logger.LogInformation($"CheckStock - Product: {product.Name}, Current Stock: {product.Stock}, Requested Quantity: {quantity}");
+                
+                return Json(new { 
+                    available = quantity <= product.Stock, 
+                    actualStock = product.Stock 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking stock for product {ProductId}", productId);
+                return Json(new { available = false, actualStock = 0, message = "Error checking stock" });
+            }
         }
 
         [HttpPost]

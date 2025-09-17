@@ -12,5 +12,6 @@ namespace DAL.Presistance.Repositories.Products
     public interface IProductRepository: IGenericRepository<Product>
     {
         Task<IEnumerable<Product>> GetAllWithCategoryAsync();
+        Task<Product?> GetByIdWithCategoryAsync(int id);
     }
 }

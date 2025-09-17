@@ -82,17 +82,17 @@ namespace BLL.Services.WishlistServices
             return await _unitOfWork.Wishlists.GetCountByUserIdAsync(userId);
         }
 
-        public async Task<bool> MoveToCartAsync(int wishlistId, int quantity = 1)
+        public Task<bool> MoveToCartAsync(int wishlistId, int quantity = 1)
         {
             try
             {
                 // This method needs to be redesigned to work with the repository pattern
                 // For now, return false as it requires additional context
-                return false;
+                return Task.FromResult(false);
             }
             catch
             {
-                return false;
+                return Task.FromResult(false);
             }
         }
     }

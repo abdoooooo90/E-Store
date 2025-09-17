@@ -21,5 +21,10 @@ namespace DAL.Presistance.Repositories.Products
         {
             return await _context.Products.Include(p => p.Category).ToListAsync();
         }
+
+        public async Task<Product?> GetByIdWithCategoryAsync(int id)
+        {
+            return await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+        }
     }
 }

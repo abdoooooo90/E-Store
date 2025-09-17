@@ -125,15 +125,33 @@ namespace BLL.Services.CartItemServices
                 }
                 else
                 {
+                    // Get current product to check stock
+                    var product = await _unitOfWork.Products.GetByIdAsync(cartItem.ProductId);
+                    if (product == null)
+                    {
+                        throw new Exception("Product not found");
+                    }
+
+                    // Debug logging
+                    Console.WriteLine($"UpdateQuantityAsync - Product: {product.Name}, Current Stock: {product.Stock}, Requested Quantity: {quantity}");
+
+                    // Check if requested quantity exceeds available stock
+                    if (quantity > product.Stock)
+                    {
+                        throw new Exception($"Cannot add more items. Only {product.Stock} items available in stock.");
+                    }
+
                     cartItem.Quantity = quantity;
+                    cartItem.UpdatedAt = DateTime.UtcNow;
                     _unitOfWork.CartItems.Update(cartItem);
                 }
 
                 return await _unitOfWork.CompleteAsync() > 0;
             }
-            catch
+            catch (Exception)
             {
-                return false;
+                // Re-throw the exception so the controller can handle it properly
+                throw;
             }
         }
 

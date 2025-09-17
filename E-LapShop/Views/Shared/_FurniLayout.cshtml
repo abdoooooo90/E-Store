@@ -62,7 +62,7 @@
                                     <a href="@Url.Action("Profile", "Account")" class="text-decoration-none" style="color: inherit; display: inline-flex; align-items: center; gap: 6px;">
                                         <i class="fas fa-user"></i>
                                         @{ var fullNameClaim = User?.Claims?.FirstOrDefault(c => c.Type == "FullName")?.Value; }
-                                        <span>@(string.IsNullOrWhiteSpace(fullNameClaim) ? (User.Identity.Name.Contains("@") ? User.Identity.Name.Split('@')[0].Split('.').Take(2).Aggregate((a, b) => a + " " + b) : User.Identity.Name) : fullNameClaim)</span>
+                                        <span>@(string.IsNullOrWhiteSpace(fullNameClaim) ? (User.Identity?.Name?.Contains("@") == true ? User.Identity.Name.Split('@')[0].Split('.').Take(2).Aggregate((a, b) => a + " " + b) : User.Identity?.Name ?? "User") : fullNameClaim)</span>
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider" style="margin: 0;"></li>

@@ -91,7 +91,9 @@
                             @if (!product.IsAvailable || product.Stock <= 0)
                             {
                                 <div class="unavailable-badge">
-                                    <small class="text-muted">Currently Unavailable</small>
+                                    <small class="text-danger fw-bold">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Currently Unavailable
+                                    </small>
                                 </div>
                             }
                             

@@ -73,12 +73,12 @@ namespace E_LapShop.Controllers
                     var user = await _userManager.FindByEmailAsync(email);
                     
                     // Check if user is admin
-                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                     {
                         TempData["AdminWelcomeMessage"] = $"مرحباً بك في لوحة التحكم {user?.FullName}! تم تسجيل الدخول بنجاح";
                         return RedirectToAction("Index", "Admin");
                     }
-                    else
+                    else if (user != null)
                     {
                         // Ensure FullName claim exists/updated for UI display
                         var claims = await _userManager.GetClaimsAsync(user);
@@ -148,7 +148,6 @@ namespace E_LapShop.Controllers
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
-                TempData["Success"] = "تم تحديث بيانات الحساب بنجاح";
                 // Update or add FullName claim
                 var claims = await _userManager.GetClaimsAsync(user);
                 var fullNameClaim = claims.FirstOrDefault(c => c.Type == "FullName");
@@ -163,11 +162,16 @@ namespace E_LapShop.Controllers
                 }
                 // Refresh sign-in so updated claims/values reflect immediately in UI
                 await _signInManager.RefreshSignInAsync(user);
+                
+                TempData["Success"] = "تم تحديث بيانات الحساب بنجاح! ✅";
                 return RedirectToAction(nameof(Profile));
             }
 
             foreach (var error in result.Errors)
+            {
                 ModelState.AddModelError(string.Empty, error.Description);
+                TempData["Error"] = "حدث خطأ أثناء تحديث البيانات: " + error.Description;
+            }
 
             return View(model);
         }

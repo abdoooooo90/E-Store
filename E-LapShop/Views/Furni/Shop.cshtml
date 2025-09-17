@@ -131,7 +131,7 @@
                 <div class="row equal-height">
                     @foreach (var product in Model)
                     {
-                        <div class="col-12 col-md-4 col-lg-3 mb-5">
+                        <div class="col-12 col-md-4 col-lg-3 mb-3">
                             <div class="product-item-wrapper position-relative">
                                 <!-- Wishlist Button (only for authenticated users) -->
                                 @if (User.Identity?.IsAuthenticated == true)
@@ -151,7 +151,9 @@
                                     @if (!product.IsAvailable || product.Stock <= 0)
                                     {
                                         <div class="unavailable-badge">
-                                            <small class="text-muted">Currently Unavailable</small>
+                                            <small class="text-danger fw-bold">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Currently Unavailable
+                                            </small>
                                         </div>
                                     }
                                     
@@ -468,12 +470,12 @@
 
 /* Enhanced product spacing and button visibility */
 .product-item-wrapper {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
 }
 
 .product-item {
-    padding-bottom: 3rem;
+    padding-bottom: 2rem;
     position: relative;
     display: block;
 }

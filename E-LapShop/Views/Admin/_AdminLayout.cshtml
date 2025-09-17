@@ -339,9 +339,11 @@
                                 الإعدادات
                             </a>
                         </li>
-                        
-                        <hr class="text-white-50 my-3">
-                        
+                    </ul>
+                    
+                    <hr class="text-white-50 my-3">
+                    
+                    <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="@Url.Action("Index", "Furni")">
                                 <i class="fas fa-home me-2"></i>
@@ -368,7 +370,7 @@
                     <div class="btn-toolbar mb-2 mb-md-0">
                         <div class="btn-group me-2">
                             <span class="navbar-text">
-                                مرحباً، @User.Identity.Name
+                                مرحباً، @(User.Identity?.Name ?? "Admin")
                             </span>
                         </div>
                     </div>

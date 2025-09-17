@@ -39,7 +39,7 @@ namespace BLL.Services.ProductServices
 
         public async Task<ProductDto?> GetByIdAsync(int id)
         {
-            var product = await _unitOfWork.Products.GetByIdAsync(id);
+            var product = await _unitOfWork.Products.GetByIdWithCategoryAsync(id);
             return product == null ? null : _mapper.Map<ProductDto>(product);
         }
 
