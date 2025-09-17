@@ -30,6 +30,14 @@
 
             <div class="collapse navbar-collapse" id="navbarsFurni">
                 <ul class="custom-navbar-nav navbar-nav ms-auto mb-2 mb-md-0">
+                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                    {
+                        <li class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Admin" ? "active" : "")">
+                            <a class="nav-link" href="@Url.Action("Index", "Admin")">
+                                <i class="fas fa-tools me-1"></i> Admin
+                            </a>
+                        </li>
+                    }
                     <li class="nav-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
                         <a class="nav-link" href="@Url.Action("Index", "Furni")">Home</a>
                     </li>
