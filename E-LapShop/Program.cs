@@ -8,6 +8,7 @@ using BLL.Services.CategorieServices;
 using BLL.Services.CartItemServices;
 using BLL.Services.WishlistServices;
 using BLL.Services.OrderServices;
+using BLL.Services.EmailServices;
 using DAL.Presistance.Repositories.Products;
 using DAL.Presistance.Repositories.Categories;
 using DAL.Presistance.Repositories.CartItems;
@@ -48,6 +49,7 @@ namespace E_LapShop
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<ICartItemService, CartItemService>();
             builder.Services.AddScoped<IWishlistService, WishlistService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
             // Add in-memory cache and session for storing coupon/discount info
             builder.Services.AddDistributedMemoryCache();

@@ -1,8 +1,9 @@
-
-using DAL.Models;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using DAL.Models;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using BLL.Services.EmailServices;
 using System.Security.Claims;
 
 namespace E_LapShop.Controllers
@@ -11,11 +12,13 @@ namespace E_LapShop.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEmailService _emailService;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailService = emailService;
         }
         [HttpGet]
         public IActionResult Register()
@@ -174,6 +177,129 @@ namespace E_LapShop.Controllers
             }
 
             return View(model);
+        }
+
+        // Forgot Password - GET
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        // Forgot Password - POST
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["ErrorMessage"] = "يرجى إدخال عنوان البريد الإلكتروني.";
+                return View();
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                // Don't reveal that the user does not exist for security reasons
+                TempData["SuccessMessage"] = "إذا كان هناك حساب مسجل بهذا البريد الإلكتروني، فسيتم إرسال رابط إعادة تعيين كلمة المرور إليك.";
+                return View();
+            }
+
+            // Generate password reset token
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            
+            // Create reset link
+            var resetLink = Url.Action("ResetPassword", "Account", 
+                new { token = token, email = email }, Request.Scheme);
+
+            // Send email with reset link
+            var emailSent = await _emailService.SendPasswordResetEmailAsync(email, resetLink);
+            
+            if (emailSent)
+            {
+                TempData["SuccessMessage"] = "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد والبريد المزعج.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "حدث خطأ أثناء إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى لاحقاً.";
+            }
+
+            return View();
+        }
+
+        // Reset Password - GET
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string token, string email)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
+            {
+                TempData["ErrorMessage"] = "Invalid password reset link.";
+                return RedirectToAction("Auth");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Invalid password reset link.";
+                return RedirectToAction("Auth");
+            }
+
+            ViewBag.Token = token;
+            ViewBag.Email = email;
+            return View();
+        }
+
+        // Reset Password - POST
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(string token, string email, string password, string confirmPassword)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email) || 
+                string.IsNullOrEmpty(password) || string.IsNullOrEmpty(confirmPassword))
+            {
+                TempData["ErrorMessage"] = "All fields are required.";
+                ViewBag.Token = token;
+                ViewBag.Email = email;
+                return View();
+            }
+
+            if (password != confirmPassword)
+            {
+                TempData["ErrorMessage"] = "Passwords do not match.";
+                ViewBag.Token = token;
+                ViewBag.Email = email;
+                return View();
+            }
+
+            if (password.Length < 6)
+            {
+                TempData["ErrorMessage"] = "Password must be at least 6 characters long.";
+                ViewBag.Token = token;
+                ViewBag.Email = email;
+                return View();
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Invalid password reset link.";
+                return RedirectToAction("Auth");
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, token, password);
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Your password has been reset successfully. You can now sign in with your new password.";
+                return RedirectToAction("Auth");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                TempData["ErrorMessage"] = "Error: " + error.Description;
+                break; // Show only the first error
+            }
+
+            ViewBag.Token = token;
+            ViewBag.Email = email;
+            return View();
         }
     }
 }
